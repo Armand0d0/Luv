@@ -35,6 +35,9 @@ function keepTrackOf(elementName, selector, action){
 
 (function (){
         //onload...
+        
+        
+        //showWindow();
 
         //custom subtitles
         keepTrackOf("ytp-caption-window-container", str => document.getElementById(str) , watchContainer);
@@ -55,7 +58,7 @@ function watchContainer(captionContainer){
         const callback = (mutationList, observer) => {
           for (const mutation of mutationList) {
                 if(mutation.type === "childList" && mutation.addedNodes.length != 0){
-                    makeWindowNotDragable();
+                    makeCaptionsNotDragable();
                     mutation.addedNodes.forEach(function(n){
                         if(n.childNodes.length !=0){
                             lines = n.childNodes[0].childNodes
@@ -112,8 +115,8 @@ function attachSub(line){
                 if(line.children != undefined){
                     sub = line.children[0];
 
-                    if(sub != null){
-                        
+                    if(sub != null && sub.innerText.length > 0){
+
 	                    words = sub.innerText.split(' ');
 	                    words.forEach(function(w,i){
 	                        if(w===""){
@@ -173,18 +176,32 @@ function modifyText(sub, txt){
 	                prefix.innerText = txt;
 
 }
-
+/*-------------------------------------------------------------------------------------------------------------------------------------*/
+function showWindow(){
+    var div = document.createElement('div');
+    div.id = "LuvWindow";
+    div.innerText = "Luv is All";
+    var prev = document.getElementById("LuvWindow");
+    while(prev != null){
+        prev.remove();
+        prev = document.getElementById("LuvWindow");
+    }
+    div.style.height = window.innerHeight/3 + "px" ;
+    div.style.width = window.innerWidth + "px";
+    document.body.appendChild(div);
+}/*-------------------------------------------------------------------------------------------------------------------------------------*/
 function makeWord(w){
         w.style.border='solid';
         w.style.borderWidth = '0px 2px';
         w.style.borderColor = 'transparent';
         w.addEventListener("mousedown", function (event) {
+            //showWindow();
             console.log(w.innerText);
             event.stopPropagation(); 
         }, true);
         
         w.addEventListener("mouseover", function (event) {
-            w.style.borderWidth = '0.15em 2px';
+            w.style.borderWidth = '0.12em 2px';
             w.style.borderColor = 'yellow'; 
         }, true);
          w.addEventListener("mouseout", function (event) {
@@ -192,7 +209,7 @@ function makeWord(w){
             w.style.borderColor = 'transparent'; ; 
         }, true);
 }
-function makeWindowNotDragable(){
+function makeCaptionsNotDragable(){
      elem=document.querySelector("div.caption-window");
     if(elem!=null){
         elem.setAttribute("draggable", "false");
@@ -201,16 +218,16 @@ function makeWindowNotDragable(){
     }
 }
 
-	console.log("Loaded");
+	console.log("injected !! ");
 	
 /*  
         TODOLIST :
+-executer au chargement de la page et de l extension
 -ne pas attendre un event pour modifier un txt
--si pas de noeud trouvé checker la création de nouveaux noeuds
--rendre la modification pour tous les tests de la page
--executer au chargement de la page
--github
+-checker la création de nouveaux noeuds
+-rendre la modification pour tous les texts de la page
 -gerer la ponctuation : d' . - ... 
 -acceder a la traduction fournie par yt
+
 
 */

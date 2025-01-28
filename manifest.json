@@ -1,0 +1,17 @@
+{
+  "manifest_version": 2,
+  "name": "Luv",
+  "version": "1.0",
+  "description": "A laguage learnig extension and that keeps track of the words you learn using video captions.",
+  "icons": {
+    "1": "icon.png"
+  },
+  "permissions": [
+    "activeTab"
+  ],
+  "browser_action": {
+      "default_icon": "icon.png",
+    "default_title": "Luv",
+    "default_popup": "popup.html"
+  }
+}

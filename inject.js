@@ -8,6 +8,7 @@ function keepTrackOf(elementName, selector, action){
     var elem = selector(elementName);
     selected = (elem != null);
         if(selected){
+            elem.setAttribute("luvTracking", "true");
             action(elem);
         }
         
@@ -26,6 +27,7 @@ function keepTrackOf(elementName, selector, action){
                     elem  = selector(elementName);
                     selected = (elem != null);
                     if(selected){
+                       elem.setAttribute("luvTracking", "true");
                        action(elem);
                    }
            }
@@ -39,9 +41,10 @@ function keepTrackOf(elementName, selector, action){
         
         //showWindow();
 
-        keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[1] , handleCaptionSegment);
-        
-        
+
+       // keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[1] , handleCaptionSegment);
+                keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
+        keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
 })();
 function splitSegment(segment,text){
 
@@ -59,6 +62,8 @@ function splitSegment(segment,text){
 
 	         });
 	         segment.style.display = 'none';
+	        
+	         //console.log(segment.id);
 	     }    
 }
 
@@ -66,12 +71,17 @@ function cleanupSplitWords(segment){
     segment.parentNode.childNodes.forEach(function (w){
         if((w.id === 'luvWord')){
             w.remove();
+            
         }
     });
     
 }
 
 function handleCaptionSegment(segment){
+        if(segment.id === 'luvWord'){
+	            console.log("abort handle luv word");
+	             return;
+	    }
 
        //makeCaptionsNotDragable();
        splitSegment(segment, segment.innerText);
@@ -79,7 +89,7 @@ function handleCaptionSegment(segment){
             for (const mutation of mutationList) {
 
                 if(mutation.addedNodes[0].nodeType == Node.TEXT_NODE){
-                    console.log(mutation.addedNodes[0]);
+                    //console.log(mutation.addedNodes[0].nodeValue);
                     var w = mutation.addedNodes[0].nodeValue;
                     splitSegment(segment,w);
                 }
@@ -107,7 +117,7 @@ function showWindow(){
 function makeLuvWord(w, text){
         
 	    w.style.display = "inline-block";
-	    w.style.backgroundColor = 'green';
+	    //w.style.backgroundColor = 'green';
 	    w.innerText = text+" ";
 	    w.id = 'luvWord';
         w.style.border='solid';
@@ -142,10 +152,9 @@ function makeCaptionsNotDragable(){
 /*  
         TODOLIST :
         
--refaire l'apparence du mot selectioné
+-refaire l'apparence des mot selectioné
 -get display style of modified segment (in splitSegment)
 -ne pas attendre un event pour modifier un txt
--checker la création de nouveaux noeuds
 -rendre la modification pour tous les texts de la page
 -gerer la ponctuation : d' . - ... 
 -acceder a la traduction fournie par yt
@@ -153,6 +162,6 @@ function makeCaptionsNotDragable(){
 
 cd dev/Luv
 git add .
-git commit -m "cleanning up.."
+git commit -m "marking tracked nodes with "luveTracking = true" attr to avoid different keepTrackOf calls tracking the same node "
 
 */

@@ -79,22 +79,12 @@ function splitSegment(segment,text,modifying){
             });
             
 	        words.forEach(function(w,i){
-	                 if(w===""){
-	                     return;
-	                 }
-	                 var txt = w;
-	                 /*if( i != words.length - 1){
-	                    txt = w.concat(separator);
-	                 }
-	                 if(i == 0){
-	                    txt = "".concat(separator,w);
-	                 }*/
-
-	             
-
+	             if(w===""){
+	                return;
+	             }
 	             var newWord = segment.cloneNode(true);
-	             makeLuvWord(newWord, txt);
-	                             //newWord.style.whiteSpace = 'normal';
+	             makeLuvWord(newWord, w);
+	             
 	             if(!modifying){
 	                newWord.style.backgroundColor = 'blue';
 	             }
@@ -117,7 +107,6 @@ function cleanupSplitWords(segment){
 
 function handleCaptionSegment(segment){
         if(segment.id === 'luvWord'){
-	            console.log("abort handle luv word");
 	             return;
 	    }
 
@@ -127,7 +116,6 @@ function handleCaptionSegment(segment){
             for (const mutation of mutationList) {
 
                 if(mutation.addedNodes[0].nodeType == Node.TEXT_NODE){
-                    //console.log(mutation.addedNodes[0].nodeValue);
                     var w = mutation.addedNodes[0].nodeValue;
                     splitSegment(segment,w, true);
                 }
@@ -189,7 +177,6 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
--handle 1st space issue
 -refaire l'apparence des mot selectioné
 -get display style of modified segment (in splitSegment)
 -ne pas attendre un event pour modifier un texte
@@ -200,6 +187,6 @@ function makeCaptionsNotDragable(){
 
 cd dev/Luv
 git add .
-git commit -m "solved right text align padding problem and added a tracker to udate it automatically"
+git commit -m "cleanup"
 
 */

@@ -41,11 +41,6 @@ function keepTrackOf(elementName, selector, action){
         
         //showWindow();
 
-        //custom subtitles
-        //keepTrackOf("ytp-caption-window-container", str => document.getElementById(str) , watchContainer);
-
-        //generated subtitles
-        //keepTrackOf("span.captions-text",str => document.querySelector(str) , watchSubs);
         keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[1] , handleCaptionSegment);
         
         
@@ -96,131 +91,8 @@ function handleCaptionSegment(segment){
 }
 
 
-/*-------------------------------------------------------------------------------------------------------------------------------------*/
-function watchContainer(captionContainer){
 
-        const config = { childList: true, subtree: true ,characterData : true};
-
-        const callback = (mutationList, observer) => {
-          for (const mutation of mutationList) {
-                if(mutation.type === "childList" && mutation.addedNodes.length != 0){
-                    makeCaptionsNotDragable();
-                    mutation.addedNodes.forEach(function(n){
-                        if(n.childNodes.length !=0){
-                            lines = n.childNodes[0].childNodes
-                            lines.forEach(attachSub);
-                        }
-                        
-                    });
-                }
-          }
-        };
-        const observer = new MutationObserver(callback);
-        observer.observe(captionContainer, config);
-}
-function watchSubs(targetCaptions){
-    const config = { childList: true, subtree: true};
-        const callback = (mutationList, observer) => {
-          for (const mutation of mutationList) {
-                if (mutation.type === "childList") {
-                    mutation.addedNodes.forEach(function(line){
-                        attachSub(line);
-                        if(line.children != undefined && line.children.length !=0){
-                            watchCaption(line.children[0]);
-                        }
-                    });
-                }
-          }
-        };
-
-        const observer = new MutationObserver(callback);
-        observer.observe(targetCaptions, config);
-        
-}
-
-
-function watchCaption(cap){
-//console.log(cap);
-
-        const configSub = { childList: true, subtree: true ,characterData : true};
-
-        const callbackSub = (mutationList, observer) => {
-          for (const mutation of mutationList) {
-                if(mutation.type === "childList" && mutation.addedNodes.length != 0){
-                   makeCaptionsNotDragable();
-                   modifyText(mutation.target, cap.innerText);
-                }
-          }
-        };
-        const observerSub = new MutationObserver(callbackSub);
-        observerSub.observe(cap, configSub);
-}
-    
-
-
-
-function attachSub(line){
-                if(line != null && line.children[0] != undefined){
-                    sub = line.children[0];
-    
-                    if(sub != null && sub.innerText != undefined){
-
-
-	                    words = sub.innerText.split(' ');
-	                    words.forEach(function(w,i){
-	                        if(w===""){
-	                            return;
-	                        }
-	                        var newWord = sub.cloneNode(true);
-	                        makeLuvWord(newWord,w);
-	                        line.appendChild(newWord);
-	                    });
-	                sub.style.display = 'none';
-	                }
-	            }
-}
-function modifyText(sub, txt){
-
-	                var prefix = null;
-	                if(!document.getElementById("captionPrefix")){
-	                    var prefix = sub.cloneNode(true);
-	                    prefix.style.display = 'none';
-	                    prefix.id = "captionPrefix";
-	                    prefix.innerText = "" ;
-	                    sub.parentNode.appendChild(prefix);
-                        
-                        document.querySelectorAll('[id=luvWord]').forEach(function(e){
-                            if(e.parentNode == sub.parentNode){
-                                e.remove();
-                            }
-                        });
-
-	                }else{
-	                    prefix = document.getElementById("captionPrefix");
-	                }
-	                
-	                newTextSize = txt.length - prefix.innerText.length;
-	                difference = txt.slice(-newTextSize);
-	                if(newTextSize == 0){
-	                difference = "";
-
-	                }
-
-	                words = difference.split(' ');
-	                words.forEach(function(w){
-	                    if(w===""){
-	                       return;
-	                    }          
-	                    
-	                    var newWord = sub.cloneNode(true);
-	                    makeLuvWord(newWord,w);
-	                    sub.parentNode.appendChild(newWord);
-	                });
-	                
-	                prefix.innerText = txt;
-
-}
-/*-------------------------------------------------------------------------------------------------------------------------------------*/
+/*---------------------------------------------------------------------------------------------------------------------------------*/
 function showWindow(){
     var div = document.createElement('div');
     div.id = "LuvWindow";
@@ -283,6 +155,6 @@ function makeCaptionsNotDragable(){
 
 cd dev/Luv
 git add .
-git commit -m "
+git commit -m "cleanning up.."
 
 */

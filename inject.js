@@ -57,9 +57,9 @@ function keepTrackOf(elementName, selector, action, mutationCallback){
 })();
 function splitSegment(segment,text){
 
-     if(segment != null && segment.innerText != undefined){
+     if(segment != null && text != undefined){
 
-            words = segment.innerText.split(' ');
+            words = text.split(' ');
 	        words.forEach(function(w,i){
 	             if(w===""){
 	                 return;
@@ -67,10 +67,8 @@ function splitSegment(segment,text){
 
 	             var newWord = segment.cloneNode(true);
 	             makeLuvWord(newWord, w);
-	            
-	             
-	            /* newWord.
-	             segment.setAttribute("luvWordList",)*/
+	             segment.parentNode.appendChild(newWord);
+
 	         });
 	         segment.style.display = 'none';
 	     }    
@@ -84,7 +82,6 @@ function cleanupSplitWords(segment){
     segment.parentNode.childNodes.forEach(function (w){
         if((w.id === 'luvWord')){
             w.remove();
-            console.log("removed");
         }
     });
     
@@ -92,25 +89,15 @@ function cleanupSplitWords(segment){
 
 function handleCaptionSegment(segment){
 
-       makeCaptionsNotDragable();
-       //cleanupSplitWords(segment);
-       splitSegment(segment);
+       //makeCaptionsNotDragable();
+       splitSegment(segment, segment.innerText);
        new MutationObserver( (mutationList) => {
             for (const mutation of mutationList) {
-                //modifyText(mutation.target, segment.innerText);
-                                    //console.log(mutation.addedNodes[0].id);
+
                 if(!(mutation.addedNodes[0].id === 'luvWord')){
 
-                    //segment.appendChild(mutation.previousSibling.nextSibling);
-                    //cleanupSplitWords(segment);
-                    //splitSegment(segment);
-                    var w = mutation.addedNodes[0].nodeValue;//.textContent;
-                    console.log(w);
-                    
-                    var newWord = segment.cloneNode(true);
-	                makeLuvWord(newWord, w);        //si un mot en contient 2 ?///////////////////////////////////////////////////
-                                                
-                    segment.parentNode.appendChild(newWord);
+                    var w = mutation.addedNodes[0].nodeValue;/////////////////////////////when it's not a textNode ?
+                    splitSegment(segment,w);
                 }
             }
        }).observe(segment,{ childList: true, subtree: true, characterData : true});
@@ -304,5 +291,9 @@ function makeCaptionsNotDragable(){
 -gerer la ponctuation : d' . - ... 
 -acceder a la traduction fournie par yt
 
+
+cd dev/Luv
+git add .
+git commit -m "
 
 */

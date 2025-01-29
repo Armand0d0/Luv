@@ -39,9 +39,6 @@ function keepTrackOf(elementName, selector, action){
 
 (function (){        
         
-        //showWindow();
-        
-        
         keepTrackOf("caption-window-1",str => document.getElementById(str) , alignSubtitles);
         keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
         keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
@@ -126,20 +123,7 @@ function handleCaptionSegment(segment){
 
 
 
-/*---------------------------------------------------------------------------------------------------------------------------------*/
-function showWindow(){
-    var div = document.createElement('div');
-    div.id = "LuvWindow";
-    div.innerText = "Luv is All";
-    var prev = document.getElementById("LuvWindow");
-    while(prev != null){
-        prev.remove();
-        prev = document.getElementById("LuvWindow");
-    }
-    div.style.height = window.innerHeight/3 + "px" ;
-    div.style.width = window.innerWidth + "px";
-    document.body.appendChild(div);
-}/*-------------------------------------------------------------------------------------------------------------------------------------*/
+
 function makeLuvWord(w, text){
         
 	    w.style.display = "inline-block";
@@ -150,7 +134,7 @@ function makeLuvWord(w, text){
         w.style.borderWidth = '0px 0.15em';
         w.style.borderColor = 'transparent';
         w.addEventListener("mousedown", function (event) {
-            //showWindow();
+            
             console.log(w.innerText);
             event.stopPropagation(); 
         }, true);

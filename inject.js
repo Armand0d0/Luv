@@ -40,30 +40,68 @@ function keepTrackOf(elementName, selector, action){
 (function (){        
         
         //showWindow();
-
-
-       // keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[1] , handleCaptionSegment);
-                keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
+        
+        
+        keepTrackOf("caption-window-1",str => document.getElementById(str) , alignSubtitles);
+        keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
         keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
 })();
-function splitSegment(segment,text){
+
+function alignSubtitles(captionWindow){
+        var textAlign = captionWindow.style.textAlign;
+        if(captionWindow && textAlign != undefined){
+            if(textAlign === "right"){
+                  let el = document.createElement('style');
+                  el.type = 'text/css';
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: .25em; padding-right: 0;}";
+                  document.head.appendChild(el);
+            }else if(textAlign === "left"){
+                  let el = document.createElement('style');
+                  el.type = 'text/css';
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: .25em;}";
+                  document.head.appendChild(el);
+            }
+        }
+}
+
+function splitSegment(segment,text,modifying){
 
      if(segment != null && text != undefined){
-
-            words = text.split(' ');
-	        words.forEach(function(w,i){
-	             if(w===""){
-	                 return;
+            var separator = ' '
+            
+            wordsWithEmptyStrings = text.replaceAll(' ',separator).split(separator);
+            
+            var words = [];
+            wordsWithEmptyStrings.forEach(function(w){//remove empty strings
+                if(!(w==="")){
+	                 words.push( w);
 	             }
+            });
+            
+	        words.forEach(function(w,i){
+	                 if(w===""){
+	                     return;
+	                 }
+	                 var txt = w;
+	                 /*if( i != words.length - 1){
+	                    txt = w.concat(separator);
+	                 }
+	                 if(i == 0){
+	                    txt = "".concat(separator,w);
+	                 }*/
+
+	             
 
 	             var newWord = segment.cloneNode(true);
-	             makeLuvWord(newWord, w);
+	             makeLuvWord(newWord, txt);
+	                             //newWord.style.whiteSpace = 'normal';
+	             if(!modifying){
+	                newWord.style.backgroundColor = 'blue';
+	             }
 	             segment.parentNode.appendChild(newWord);
-
 	         });
 	         segment.style.display = 'none';
 	        
-	         //console.log(segment.id);
 	     }    
 }
 
@@ -83,15 +121,15 @@ function handleCaptionSegment(segment){
 	             return;
 	    }
 
-       //makeCaptionsNotDragable();
-       splitSegment(segment, segment.innerText);
+       makeCaptionsNotDragable();
+       splitSegment(segment, segment.innerText, false);
        new MutationObserver( (mutationList) => {
             for (const mutation of mutationList) {
 
                 if(mutation.addedNodes[0].nodeType == Node.TEXT_NODE){
                     //console.log(mutation.addedNodes[0].nodeValue);
                     var w = mutation.addedNodes[0].nodeValue;
-                    splitSegment(segment,w);
+                    splitSegment(segment,w, true);
                 }
             }
        }).observe(segment,{ childList: true, subtree: true, characterData : true});
@@ -117,11 +155,11 @@ function showWindow(){
 function makeLuvWord(w, text){
         
 	    w.style.display = "inline-block";
-	    //w.style.backgroundColor = 'green';
-	    w.innerText = text+" ";
+	    w.style.backgroundColor = 'green';
+	    w.innerText = text;
 	    w.id = 'luvWord';
         w.style.border='solid';
-        w.style.borderWidth = '0px 2px';
+        w.style.borderWidth = '0px 0.15em';
         w.style.borderColor = 'transparent';
         w.addEventListener("mousedown", function (event) {
             //showWindow();
@@ -130,11 +168,11 @@ function makeLuvWord(w, text){
         }, true);
         
         w.addEventListener("mouseover", function (event) {
-            w.style.borderWidth = '0.12em 2px';
+            w.style.borderWidth = '0.12em 0.15em';
             w.style.borderColor = 'yellow'; 
         }, true);
          w.addEventListener("mouseout", function (event) {
-            w.style.borderWidth = '0px 2px';
+            w.style.borderWidth = '0px 0.15em';
             w.style.borderColor = 'transparent'; ; 
         }, true);
 }
@@ -151,10 +189,10 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
-        
+-handle 1st space issue
 -refaire l'apparence des mot selectioné
 -get display style of modified segment (in splitSegment)
--ne pas attendre un event pour modifier un txt
+-ne pas attendre un event pour modifier un texte
 -rendre la modification pour tous les texts de la page
 -gerer la ponctuation : d' . - ... 
 -acceder a la traduction fournie par yt
@@ -162,6 +200,6 @@ function makeCaptionsNotDragable(){
 
 cd dev/Luv
 git add .
-git commit -m "marking tracked nodes with "luveTracking = true" attr to avoid different keepTrackOf calls tracking the same node "
+git commit -m "solved right text align padding problem and added a tracker to udate it automatically"
 
 */

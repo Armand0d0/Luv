@@ -35,9 +35,7 @@ function keepTrackOf(elementName, selector, action){
         observer.observe(document.body, config);
 }
 
-(function (){
-        //onload...
-        
+(function (){        
         
         //showWindow();
 

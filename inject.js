@@ -46,16 +46,24 @@ function keepTrackOf(elementName, selector, action){
 
 function alignSubtitles(captionWindow){
         var textAlign = captionWindow.style.textAlign;
+        var old = document.getElementById("luvTextAlign");
+        if(old){
+            old.remove();
+        }
         if(captionWindow && textAlign != undefined){
             if(textAlign === "right"){
                   let el = document.createElement('style');
                   el.type = 'text/css';
-                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: .25em; padding-right: 0;}";
+                  el.id = 'luvTextAlign';
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: .25em; padding-right: 0; "+
+                  "border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
                   document.head.appendChild(el);
             }else if(textAlign === "left"){
                   let el = document.createElement('style');
                   el.type = 'text/css';
-                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: .25em;}";
+                  el.id = 'luvTextAlign';
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: .25em; " + 
+                  "border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
                   document.head.appendChild(el);
             }
         }
@@ -82,9 +90,9 @@ function splitSegment(segment,text,modifying){
 	             var newWord = segment.cloneNode(true);
 	             makeLuvWord(newWord, w);
 	             
-	             if(!modifying){
+	             /*if(!modifying){
 	                newWord.style.backgroundColor = 'blue';
-	             }
+	             }*/
 	             segment.parentNode.appendChild(newWord);
 	         });
 	         segment.style.display = 'none';
@@ -127,7 +135,7 @@ function handleCaptionSegment(segment){
 function makeLuvWord(w, text){
         
 	    w.style.display = "inline-block";
-	    w.style.backgroundColor = 'green';
+	    //w.style.backgroundColor = 'green';
 	    w.innerText = text;
 	    w.id = 'luvWord';
         w.style.border='solid';

@@ -3,15 +3,12 @@ function sleep(ms) {
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------*/
-function keepTrackOf(elementName, selector, action, mutationCallback){
+function keepTrackOf(elementName, selector, action){
     var selected = true;
     var elem = selector(elementName);
     selected = (elem != null);
         if(selected){
             action(elem);
-            //console.log('An element ' + elementName + ' was found! ');
-        }else{
-          //console.log('!! No ' + elementName + ' was found!');
         }
         
         const config = { childList: true, subtree: true};
@@ -30,10 +27,8 @@ function keepTrackOf(elementName, selector, action, mutationCallback){
                     selected = (elem != null);
                     if(selected){
                        action(elem);
-                       //console.log('An element ' + elementName + ' was found! ');
                    }
            }
-           mutationCallback(mutationList);
            
         };
         const observer = new MutationObserver(callback);
@@ -51,7 +46,7 @@ function keepTrackOf(elementName, selector, action, mutationCallback){
 
         //generated subtitles
         //keepTrackOf("span.captions-text",str => document.querySelector(str) , watchSubs);
-        keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[1] , handleCaptionSegment, modifySegment);
+        keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[1] , handleCaptionSegment);
         
         
 })();
@@ -74,10 +69,6 @@ function splitSegment(segment,text){
 	     }    
 }
 
-function modifySegment(mutationList){
-    
-}
-
 function cleanupSplitWords(segment){
     segment.parentNode.childNodes.forEach(function (w){
         if((w.id === 'luvWord')){
@@ -94,15 +85,13 @@ function handleCaptionSegment(segment){
        new MutationObserver( (mutationList) => {
             for (const mutation of mutationList) {
 
-                if(!(mutation.addedNodes[0].id === 'luvWord')){
-
-                    var w = mutation.addedNodes[0].nodeValue;/////////////////////////////when it's not a textNode ?
+                if(mutation.addedNodes[0].nodeType == Node.TEXT_NODE){
+                    console.log(mutation.addedNodes[0]);
+                    var w = mutation.addedNodes[0].nodeValue;
                     splitSegment(segment,w);
                 }
             }
        }).observe(segment,{ childList: true, subtree: true, characterData : true});
-       //*/
-
     
 }
 

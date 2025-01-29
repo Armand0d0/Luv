@@ -3,7 +3,7 @@ function sleep(ms) {
 }
 
 /*-------------------------------------------------------------------------------------------------------------------------------------*/
-function keepTrackOf(elementName, selector, action){
+function keepTrackOf(elementName, selector, action, mutationCallback){
     var selected = true;
     var elem = selector(elementName);
     selected = (elem != null);
@@ -33,6 +33,7 @@ function keepTrackOf(elementName, selector, action){
                        //console.log('An element ' + elementName + ' was found! ');
                    }
            }
+           mutationCallback(mutationList);
            
         };
         const observer = new MutationObserver(callback);
@@ -50,30 +51,71 @@ function keepTrackOf(elementName, selector, action){
 
         //generated subtitles
         //keepTrackOf("span.captions-text",str => document.querySelector(str) , watchSubs);
-        keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[0] , handleCaptionSegment);
+        keepTrackOf("ytp-caption-segment",str => document.getElementsByClassName(str)[1] , handleCaptionSegment, modifySegment);
         
         
 })();
-function handleCaptionSegment(segment){
+function splitSegment(segment,text){
 
-        if(segment != null && segment.innerText != undefined){
-        console.log("here");
+     if(segment != null && segment.innerText != undefined){
+
             words = segment.innerText.split(' ');
 	        words.forEach(function(w,i){
 	             if(w===""){
 	                 return;
 	             }
+
 	             var newWord = segment.cloneNode(true);
-	             newWord.style.backgroundColor = 'black';
-	             newWord.innerText = w+" ";
-	             newWord.id = 'luvWord';
-	             makeWord(newWord);
-	             segment.parentNode.appendChild(newWord);
+	             makeLuvWord(newWord, w);
+	            
+	             
+	            /* newWord.
+	             segment.setAttribute("luvWordList",)*/
 	         });
 	         segment.style.display = 'none';
 	     }    
+}
 
-    //watchCaption(segment);
+function modifySegment(mutationList){
+    
+}
+
+function cleanupSplitWords(segment){
+    segment.parentNode.childNodes.forEach(function (w){
+        if((w.id === 'luvWord')){
+            w.remove();
+            console.log("removed");
+        }
+    });
+    
+}
+
+function handleCaptionSegment(segment){
+
+       makeCaptionsNotDragable();
+       //cleanupSplitWords(segment);
+       splitSegment(segment);
+       new MutationObserver( (mutationList) => {
+            for (const mutation of mutationList) {
+                //modifyText(mutation.target, segment.innerText);
+                                    //console.log(mutation.addedNodes[0].id);
+                if(!(mutation.addedNodes[0].id === 'luvWord')){
+
+                    //segment.appendChild(mutation.previousSibling.nextSibling);
+                    //cleanupSplitWords(segment);
+                    //splitSegment(segment);
+                    var w = mutation.addedNodes[0].nodeValue;//.textContent;
+                    console.log(w);
+                    
+                    var newWord = segment.cloneNode(true);
+	                makeLuvWord(newWord, w);        //si un mot en contient 2 ?///////////////////////////////////////////////////
+                                                
+                    segment.parentNode.appendChild(newWord);
+                }
+            }
+       }).observe(segment,{ childList: true, subtree: true, characterData : true});
+       //*/
+
     
 }
 
@@ -154,10 +196,7 @@ function attachSub(line){
 	                            return;
 	                        }
 	                        var newWord = sub.cloneNode(true);
-	                        //newWord.style.backgroundColor = 'black';
-	                        newWord.innerText = w+" ";
-	                        newWord.id = 'luvWord';
-	                        makeWord(newWord);
+	                        makeLuvWord(newWord,w);
 	                        line.appendChild(newWord);
 	                    });
 	                sub.style.display = 'none';
@@ -165,7 +204,7 @@ function attachSub(line){
 	            }
 }
 function modifyText(sub, txt){
-                    console.log("HHHH");
+
 	                var prefix = null;
 	                if(!document.getElementById("captionPrefix")){
 	                    var prefix = sub.cloneNode(true);
@@ -196,11 +235,9 @@ function modifyText(sub, txt){
 	                    if(w===""){
 	                       return;
 	                    }          
-	                    newWord = sub.cloneNode(true);
-	                    newWord.style.backgroundColor = 'blue';
-	                    newWord.innerText = w + " " ;
-	                    newWord.style.display = 'inline-block';
-	                    makeWord(newWord);
+	                    
+	                    var newWord = sub.cloneNode(true);
+	                    makeLuvWord(newWord,w);
 	                    sub.parentNode.appendChild(newWord);
 	                });
 	                
@@ -221,7 +258,12 @@ function showWindow(){
     div.style.width = window.innerWidth + "px";
     document.body.appendChild(div);
 }/*-------------------------------------------------------------------------------------------------------------------------------------*/
-function makeWord(w){
+function makeLuvWord(w, text){
+        
+	    w.style.display = "inline-block";
+	    w.style.backgroundColor = 'green';
+	    w.innerText = text+" ";
+	    w.id = 'luvWord';
         w.style.border='solid';
         w.style.borderWidth = '0px 2px';
         w.style.borderColor = 'transparent';
@@ -253,7 +295,9 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
+        
 -refaire l'apparence du mot selectioné
+-get display style of modified segment (in splitSegment)
 -ne pas attendre un event pour modifier un txt
 -checker la création de nouveaux noeuds
 -rendre la modification pour tous les texts de la page

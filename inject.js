@@ -2,6 +2,8 @@ function sleep(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+
+
 /*-------------------------------------------------------------------------------------------------------------------------------------*/
 function keepTrackOf(elementName, selector, action){
     var selected = true;
@@ -34,37 +36,76 @@ function keepTrackOf(elementName, selector, action){
            
         };
         const observer = new MutationObserver(callback);
-        observer.observe(document.body, config);
+        observer.observe(document.getElementById('luvFrame').contentWindow.document.body, config);
+
 }
 
+function onLuvFrameLoad(luvFrame){
+
+      keepTrackOf("caption-window-1",str => luvFrame.contentWindow.document.getElementById(str) , alignSubtitles);
+      keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => luvFrame.contentWindow.document.querySelector(str) , handleCaptionSegment);
+      keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => luvFrame.contentWindow.document.querySelector(str) , handleCaptionSegment);
+}
+
+
 (function (){        
-        
-        keepTrackOf("caption-window-1",str => document.getElementById(str) , alignSubtitles);
-        keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
-        keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => document.querySelector(str) , handleCaptionSegment);
+        for (const c of document.body.children){
+          c.remove()
+        }
+
+         var luvFrame = document.createElement("iframe");
+        luvFrame.id = "luvFrame";
+        //console.log(location.href);
+        luvFrame.setAttribute("src",location.href);
+        luvFrame.onload  = (() => onLuvFrameLoad(luvFrame));
+        luvFrame.style.width = "50vw";
+        luvFrame.style.height = "100vh";
+        document.body.prepend(luvFrame);
+         
+        /*var intervalId = setInterval(waitLuvFrame, 5000);
+        function waitLuvFrame(){
+            console.log("waiting");
+            if(document.getElementById('luvFrame').contentWindow.document.body != null){
+                var n = document.getElementById('luvFrame').contentWindow.document.body.children.length;
+                    if(n > 0){
+                        console.log("loaded",n);
+                        clearInterval(intervalId);
+                        
+                    }
+            }
+        }*/
+
 })();
+
+/*(function(){
+      setInterval(printCap, 1000);
+      function printCap(){
+        console.log(document.getElementById('luvFrame').contentWindow.document.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])"));
+      }
+})();//*/
+
 
 function alignSubtitles(captionWindow){
         var textAlign = captionWindow.style.textAlign;
-        var old = document.getElementById("luvTextAlign");
+        var old = document.getElementById('luvFrame').contentWindow.document.getElementById("luvTextAlign");
         if(old){
             old.remove();
         }
         if(captionWindow && textAlign != undefined){
             if(textAlign === "right"){
-                  let el = document.createElement('style');
+                  let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: .25em; padding-right: 0; "+
                   "border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
-                  document.head.appendChild(el);
+                  document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }else if(textAlign === "left"){
-                  let el = document.createElement('style');
+                  let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: .25em; " + 
                   "border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
-                  document.head.appendChild(el);
+                  document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }
         }
 }
@@ -129,9 +170,6 @@ function handleCaptionSegment(segment){
     
 }
 
-
-
-
 function makeLuvWord(w, text){
         
 	    w.style.display = "inline-block";
@@ -157,7 +195,7 @@ function makeLuvWord(w, text){
         }, true);
 }
 function makeCaptionsNotDragable(){
-     elem=document.querySelector("div.caption-window");
+     elem= document.getElementById('luvFrame').contentWindow.document.querySelector("div.caption-window");
     if(elem!=null){
         elem.setAttribute("draggable", "false");
         elem.style.userSelect="none";
@@ -169,11 +207,13 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
+
 -refaire l'apparence des mot selectioné
 -get display style of modified segment (in splitSegment)
 -ne pas attendre un event pour modifier un texte
 -rendre la modification pour tous les texts de la page
 -gerer la ponctuation : d' . - ... 
+-gerer les autres alphabets
 -acceder a la traduction fournie par yt
 
 

@@ -19,7 +19,7 @@ browser.runtime.onMessage.addListener(function(request, sender, callback) {
                 ,function() {
                     browser.tabs.executeScript(tab, {
 		                file: 'inject.js',
-		                runAt: 'document_end'
+		                runAt: 'document_start'
 		            });
 	            });   
             });

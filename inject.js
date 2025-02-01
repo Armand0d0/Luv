@@ -5,9 +5,9 @@ function sleep(ms) {
 
 
 /*-------------------------------------------------------------------------------------------------------------------------------------*/
-function keepTrackOf(elementName, selector, action){
+function keepTrackOf(doc, selector, action){
     var selected = true;
-    var elem = selector(elementName);
+    var elem = selector(doc);
     selected = (elem != null);
         if(selected){
             elem.setAttribute("luvTracking", "true");
@@ -26,7 +26,7 @@ function keepTrackOf(elementName, selector, action){
            });
            
            if(!selected){// if node not selected, search for it
-                    elem  = selector(elementName);
+                    elem  = selector(doc);
                     selected = (elem != null);
                     if(selected){
                        elem.setAttribute("luvTracking", "true");
@@ -36,21 +36,41 @@ function keepTrackOf(elementName, selector, action){
            
         };
         const observer = new MutationObserver(callback);
-        observer.observe(document.getElementById('luvFrame').contentWindow.document.body, config);
+        observer.observe(doc.body, config);
 
 }
 
 function onLuvFrameLoad(luvFrame){
 
-      keepTrackOf("caption-window-1",str => luvFrame.contentWindow.document.getElementById(str) , alignSubtitles);
-      keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => luvFrame.contentWindow.document.querySelector(str) , handleCaptionSegment);
-      keepTrackOf("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])",str => luvFrame.contentWindow.document.querySelector(str) , handleCaptionSegment);
+      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementById("caption-window-1") , alignSubtitles);
+      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
+      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
+      
+      luvFrame.contentWindow.document.body.onmousedown = function(e){
+            console.log(e.target);
+            var url = e.target.href;
+            if(url == null){
+                url = e.target.baseURI;
+            }
+            if(url != window.location.href){
+                console.log("new url : " + url);
+            }
+      };
+
 }
 
 
 (function (){        
         for (const c of document.body.children){
           c.remove()
+        }
+        var youtube = true;
+        if(youtube){
+            keepTrackOf(document, (doc) => doc.getElementsByTagName("ytd-app")[0],  function(n){
+                //console.log("yt app hidden", n);
+                n.style.display = "none";//setAttribute("style","display: none");
+                //n.remove();
+            });
         }
 
          var luvFrame = document.createElement("iframe");
@@ -59,23 +79,34 @@ function onLuvFrameLoad(luvFrame){
         luvFrame.setAttribute("src",location.href);
         luvFrame.onload  = (() => onLuvFrameLoad(luvFrame));
         luvFrame.style.width = "50vw";
-        luvFrame.style.height = "100vh";
+        luvFrame.style.height = "80vh";
+        luvFrame.setAttribute("sandbox","allow-top-navigation allow-same-origin allow-scripts");
         document.body.prepend(luvFrame);
-         
-        /*var intervalId = setInterval(waitLuvFrame, 5000);
-        function waitLuvFrame(){
-            console.log("waiting");
-            if(document.getElementById('luvFrame').contentWindow.document.body != null){
-                var n = document.getElementById('luvFrame').contentWindow.document.body.children.length;
-                    if(n > 0){
-                        console.log("loaded",n);
-                        clearInterval(intervalId);
-                        
-                    }
-            }
-        }*/
+        
+        if(!document.getElementById("luvPannelFrame")){
+            var luvPannelFrame = document.createElement("iframe");
+            luvPannelFrame.id = "luvPannelFrame";
+            luvPannelFrame.setAttribute("src","https://www.wiktionary.org/wiki/");
+            luvPannelFrame.style.width = "50vw";
+            luvPannelFrame.style.height = "80vh";
+            document.body.appendChild(luvPannelFrame);
+        }
+        
 
 })();
+
+function openLuvPannel(word){
+        
+        var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
+        if(video != null){
+            video.pause();
+        }
+        
+        document.getElementById("luvFrame").contentWindow.document.exitFullscreen();
+
+        luvPannelFrame = document.getElementById("luvPannelFrame");
+        luvPannelFrame.setAttribute("src","https://www.wiktionary.org/wiki/" + word);
+}
 
 /*(function(){
       setInterval(printCap, 1000);
@@ -180,8 +211,8 @@ function makeLuvWord(w, text){
         w.style.borderWidth = '0px 0.15em';
         w.style.borderColor = 'transparent';
         w.addEventListener("mousedown", function (event) {
-            
-            console.log(w.innerText);
+                    console.log(w.innerText);
+            openLuvPannel(w.innerText);
             event.stopPropagation(); 
         }, true);
         
@@ -207,8 +238,11 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
-
+-open luv pannel next to a fullscreen video
+-make navigation possible in iframe 
+-when click on yt link check if it the same viedo with a slightly difrent url (split &)
 -refaire l'apparence des mot selectioné
+-netflix 
 -get display style of modified segment (in splitSegment)
 -ne pas attendre un event pour modifier un texte
 -rendre la modification pour tous les texts de la page
@@ -219,6 +253,6 @@ function makeCaptionsNotDragable(){
 
 cd dev/Luv
 git add .
-git commit -m "cleanup"
+git commit -m "made click on a luv word pause, exitfullscreen and search the word in a wiktionary iframe"
 
 */

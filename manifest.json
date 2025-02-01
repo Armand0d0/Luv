@@ -18,7 +18,7 @@
   {
     "matches": ["https://*.youtube.com/watch*"],
     "js": ["content_script.js"],
-    "run_at": "document_end"
+    "run_at": "document_start"
   }],
   "background": {
     "scripts": ["background-script.js"],

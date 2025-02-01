@@ -72,40 +72,81 @@ function onLuvFrameLoad(luvFrame){
                 //n.remove();
             });
         }
+        cleanUp(document.getElementById("luvFrame"));
 
-         var luvFrame = document.createElement("iframe");
-        luvFrame.id = "luvFrame";
-        //console.log(location.href);
-        luvFrame.setAttribute("src",location.href);
-        luvFrame.onload  = (() => onLuvFrameLoad(luvFrame));
-        luvFrame.style.width = "50vw";
-        luvFrame.style.height = "80vh";
-        luvFrame.setAttribute("sandbox","allow-top-navigation allow-same-origin allow-scripts");
-        document.body.prepend(luvFrame);
+            var luvFrame = document.createElement("iframe");
+            luvFrame.id = "luvFrame";
+            //console.log(location.href);
+            luvFrame.setAttribute("src",location.href);
+            luvFrame.onload  = (() => onLuvFrameLoad(luvFrame));
+            luvFrame.style.width = "100vw";
+            luvFrame.style.height = "100vh";
+            luvFrame.setAttribute("sandbox","allow-top-navigation allow-same-origin allow-scripts");
+            document.body.appendChild(luvFrame);
         
-        if(!document.getElementById("luvPannelFrame")){
-            var luvPannelFrame = document.createElement("iframe");
+        
+        cleanUp(document.getElementById("luvPannelFrame"));
+
+            var luvPannelFrame = document.createElement("div");
             luvPannelFrame.id = "luvPannelFrame";
-            luvPannelFrame.setAttribute("src","https://www.wiktionary.org/wiki/");
-            luvPannelFrame.style.width = "50vw";
-            luvPannelFrame.style.height = "80vh";
+            luvPannelFrame.style.position = "fixed";
+            luvPannelFrame.style.right = "0px";
+            luvPannelFrame.style.top = "0px";
+            luvPannelFrame.style.width = "0vw";
+            luvPannelFrame.style.height = "100vh";
+            
+            var wiktionary = document.createElement("iframe");
+            wiktionary.setAttribute("src","https://www.wiktionary.org/wiki/");
+            wiktionary.style.width = "100%";
+            wiktionary.style.height = "100%";
+            wiktionary.id = "wiktionary";
+            luvPannelFrame.appendChild(wiktionary);
+            
+            var menuBar = document.createElement("div");
+            menuBar.id = "menuBar";
+            menuBar.style.position = "fixed";
+            menuBar.style.right = "0px";
+            menuBar.style.top = "0px";
+            menuBar.style.width = "100%";
+            menuBar.style.height = "20px";
+            luvPannelFrame.appendChild(menuBar);
+            
+            var cross = document.createElement("button");
+            cross.id = "cross";
+            cross.style.position = "static";
+            cross.style.left = "0px";
+            cross.style.top = "0px";
+            cross.style.width = "25px";
+            cross.style.height = menuBar.style.height;
+            cross.style.backgroundColor = "red";
+            cross.style.border = "solid red 2px"
+            cross.innerText = "x";
+            cross.addEventListener("click", closeLuvPannel);
+            menuBar.appendChild(cross);
+            
             document.body.appendChild(luvPannelFrame);
-        }
+        
         
 
 })();
-
+function closeLuvPannel(){
+        document.getElementById("luvPannelFrame").style.width = "0vw";
+        document.getElementById("luvFrame").style.width = "100vw";
+}
 function openLuvPannel(word){
         
         var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
         if(video != null){
             video.pause();
         }
-        
-        document.getElementById("luvFrame").contentWindow.document.exitFullscreen();
-
+        if(document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen){
+            document.getElementById("luvFrame").contentWindow.document.exitFullscreen();
+        }
+        wiktionary = document.getElementById("wiktionary");
+        wiktionary.setAttribute("src","https://www.wiktionary.org/wiki/" + word);
         luvPannelFrame = document.getElementById("luvPannelFrame");
-        luvPannelFrame.setAttribute("src","https://www.wiktionary.org/wiki/" + word);
+        luvPannelFrame.style.width = "30vw";
+        document.getElementById("luvFrame").style.width = "70vw";
 }
 
 /*(function(){
@@ -114,14 +155,16 @@ function openLuvPannel(word){
         console.log(document.getElementById('luvFrame').contentWindow.document.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])"));
       }
 })();//*/
-
+function cleanUp(old){
+    if(old){
+            old.remove();
+    }
+}
 
 function alignSubtitles(captionWindow){
         var textAlign = captionWindow.style.textAlign;
-        var old = document.getElementById('luvFrame').contentWindow.document.getElementById("luvTextAlign");
-        if(old){
-            old.remove();
-        }
+        cleanUp(document.getElementById('luvFrame').contentWindow.document.getElementById("luvTextAlign"));
+    
         if(captionWindow && textAlign != undefined){
             if(textAlign === "right"){
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');

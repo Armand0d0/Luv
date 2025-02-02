@@ -71,6 +71,11 @@ function onLuvFrameLoad(luvFrame){
                 n.style.display = "none";//setAttribute("style","display: none");
                 //n.remove();
             });
+            keepTrackOf(document, (doc) => doc.getElementById("watch-page-skeleton"),  function(n){
+                //console.log("yt app hidden", n);
+                n.style.display = "none";//setAttribute("style","display: none");
+                //n.remove();
+            });
         }
         cleanUp(document.getElementById("luvFrame"));
 
@@ -94,42 +99,97 @@ function onLuvFrameLoad(luvFrame){
             luvPannelFrame.style.top = "0px";
             luvPannelFrame.style.width = "0vw";
             luvPannelFrame.style.height = "100vh";
-            
+            luvPannelFrame.setAttribute("isOpened","false");
+
             var wiktionary = document.createElement("iframe");
             wiktionary.setAttribute("src","https://www.wiktionary.org/wiki/");
             wiktionary.style.width = "100%";
             wiktionary.style.height = "100%";
             wiktionary.id = "wiktionary";
-            luvPannelFrame.appendChild(wiktionary);
             
             var menuBar = document.createElement("div");
             menuBar.id = "menuBar";
-            menuBar.style.position = "fixed";
+            //menuBar.style.position = "fixed";
             menuBar.style.right = "0px";
             menuBar.style.top = "0px";
             menuBar.style.width = "100%";
             menuBar.style.height = "20px";
-            luvPannelFrame.appendChild(menuBar);
             
             var cross = document.createElement("button");
             cross.id = "cross";
-            cross.style.position = "static";
-            cross.style.left = "0px";
-            cross.style.top = "0px";
+           // cross.style.position = "absolute";
+            /*cross.style.left = "0px";
+            cross.style.top = "0px";*/
             cross.style.width = "25px";
             cross.style.height = menuBar.style.height;
             cross.style.backgroundColor = "red";
             cross.style.border = "solid red 2px"
             cross.innerText = "x";
             cross.addEventListener("click", closeLuvPannel);
+
+            var slider = document.createElement("div");
+            slider.id = "slider";
+            slider.style.position = "absolute";
+            slider.style.top = "0px";
+            slider.style.left = "0px";
+            slider.style.width = "5px";
+            slider.style.height = "100%";
+            slider.style.backgroundColor = "black";
+
+            luvPannelFrame.appendChild(menuBar);
             menuBar.appendChild(cross);
-            
+            luvPannelFrame.appendChild(slider);
+            luvPannelFrame.appendChild(wiktionary);
             document.body.appendChild(luvPannelFrame);
         
+            makeSlider(slider);
+
         
 
 })();
+
+function makeSlider(elmnt) {
+    var pos1 = 0, pos2 = 0;
+    elmnt.style.cursor="col-resize";
+    elmnt.onmousedown = dragMouseDown;
+    var luvPannelFrame = document.getElementById("luvPannelFrame");
+    var luvFrame = document.getElementById("luvFrame");
+
+    function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        pos2 = e.clientX;
+
+        document.onmouseup = closeDragElement;
+        luvFrame.contentWindow.document.addEventListener("mouseup",closeDragElement);
+        document.onmousemove = elementDrag;
+        luvFrame.contentWindow.document.addEventListener("mousemove",elementDrag);
+
+      }
+      function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+
+        pos1 = pos2 - e.clientX;
+        pos2 = e.clientX;
+
+        pos1 = pos1/window.innerWidth *100;
+        luvPannelFrame.style.width = (parseFloat(luvPannelFrame.style.width)+pos1) + "vw";
+        luvFrame.style.width = (parseFloat(luvFrame.style.width)-pos1) + "vw";
+
+      }
+    
+      function closeDragElement() {
+        document.onmouseup = null;
+        luvFrame.contentWindow.document.removeEventListener("mouseup",closeDragElement);
+        document.onmousemove = null;
+        luvFrame.contentWindow.document.removeEventListener("mousemove",elementDrag);
+      }
+    
+}
+
 function closeLuvPannel(){
+        document.getElementById("luvPannelFrame").setAttribute("isOpened","false");
         document.getElementById("luvPannelFrame").style.width = "0vw";
         document.getElementById("luvFrame").style.width = "100vw";
 }
@@ -144,9 +204,13 @@ function openLuvPannel(word){
         }
         wiktionary = document.getElementById("wiktionary");
         wiktionary.setAttribute("src","https://www.wiktionary.org/wiki/" + word);
-        luvPannelFrame = document.getElementById("luvPannelFrame");
-        luvPannelFrame.style.width = "30vw";
-        document.getElementById("luvFrame").style.width = "70vw";
+        var luvPannelFrame = document.getElementById("luvPannelFrame");
+        if(luvPannelFrame.getAttribute("isOpened") === "false"){
+            luvPannelFrame.setAttribute("isOpened","true");
+            var defaultViewWidth = 30;
+            luvPannelFrame.style.width = defaultViewWidth + "vw";
+            document.getElementById("luvFrame").style.width = 100-defaultViewWidth + "vw";
+        }
 }
 
 /*(function(){
@@ -281,17 +345,18 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
+-store defaultViewWidth
+-keepTrackOfAll
 -open luv pannel next to a fullscreen video
 -make navigation possible in iframe 
 -when click on yt link check if it the same viedo with a slightly difrent url (split &)
 -refaire l'apparence des mot selectioné
 -netflix 
 -get display style of modified segment (in splitSegment)
--ne pas attendre un event pour modifier un texte
--rendre la modification pour tous les texts de la page
--gerer la ponctuation : d' . - ... 
--gerer les autres alphabets
--acceder a la traduction fournie par yt
+-make evry text on the page clickable
+-handle punctuation : d' . - ... 
+-handle other alphabets
+-get the yt translation
 
 
 cd dev/Luv

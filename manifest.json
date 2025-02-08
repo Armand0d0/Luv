@@ -7,7 +7,7 @@
     "1": "icon.png"
   },
   "permissions": [
-    "<all_urls>"
+    "<all_urls>","storage"
   ],
   "browser_action": {
       "default_icon": "icon.png",
@@ -18,12 +18,20 @@
   {
     "matches": ["https://*.youtube.com/watch*"],
     "js": ["content_script.js"],
-    "run_at": "document_start"
+    "run_at": "document_end"
   }],
+  "web_accessible_resources": [
+    "popup.html"
+  ],
   "background": {
     "scripts": ["background-script.js"],
 	"persistent": true,
 	"type": "module"
+  },
+  "browser_specific_settings": {
+  "gecko": {
+    "id": "9a41634eed1f4eb9e8631a0208082894eeb13ef9@luv"
   }
+}
 
 }

@@ -47,13 +47,13 @@ function onLuvFrameLoad(luvFrame){
       keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
       
       luvFrame.contentWindow.document.body.onmousedown = function(e){
-            console.log(e.target);
+            //console.log(e.target);
             var url = e.target.href;
             if(url == null){
                 url = e.target.baseURI;
             }
             if(url != window.location.href){
-                console.log("new url : " + url);
+                //console.log("new url : " + url);
             }
       };
 
@@ -67,14 +67,12 @@ function onLuvFrameLoad(luvFrame){
         var youtube = true;
         if(youtube){
             keepTrackOf(document, (doc) => doc.getElementsByTagName("ytd-app")[0],  function(n){
-                //console.log("yt app hidden", n);
-                n.style.display = "none";//setAttribute("style","display: none");
-                //n.remove();
+                //n.style.display = "none";
+                n.remove();
             });
             keepTrackOf(document, (doc) => doc.getElementById("watch-page-skeleton"),  function(n){
-                //console.log("yt app hidden", n);
-                n.style.display = "none";//setAttribute("style","display: none");
-                //n.remove();
+                //n.style.display = "none";
+                n.remove();
             });
         }
         cleanUp(document.getElementById("luvFrame"));
@@ -99,17 +97,17 @@ function onLuvFrameLoad(luvFrame){
             luvPannelFrame.style.top = "0px";
             luvPannelFrame.style.width = "0vw";
             luvPannelFrame.style.height = "100vh";
+            luvPannelFrame.style.backgroundColor ="white";
             luvPannelFrame.setAttribute("isOpened","false");
 
             var wiktionary = document.createElement("iframe");
             wiktionary.setAttribute("src","https://www.wiktionary.org/wiki/");
             wiktionary.style.width = "100%";
-            wiktionary.style.height = "100%";
+            wiktionary.style.height = "50%";
             wiktionary.id = "wiktionary";
             
             var menuBar = document.createElement("div");
             menuBar.id = "menuBar";
-            //menuBar.style.position = "fixed";
             menuBar.style.right = "0px";
             menuBar.style.top = "0px";
             menuBar.style.width = "100%";
@@ -117,9 +115,6 @@ function onLuvFrameLoad(luvFrame){
             
             var cross = document.createElement("button");
             cross.id = "cross";
-           // cross.style.position = "absolute";
-            /*cross.style.left = "0px";
-            cross.style.top = "0px";*/
             cross.style.width = "25px";
             cross.style.height = menuBar.style.height;
             cross.style.backgroundColor = "red";
@@ -134,19 +129,119 @@ function onLuvFrameLoad(luvFrame){
             slider.style.left = "0px";
             slider.style.width = "5px";
             slider.style.height = "100%";
-            slider.style.backgroundColor = "black";
+            slider.style.backgroundColor = "grey";
+            slider.style.border = "solid black 2px";
+            
+            var wordInfos = document.createElement("iframe");
+            var wordInfosUrl = browser.runtime.getURL("wordInfos.html");
+            wordInfos.setAttribute("src",wordInfosUrl) ;
+            wordInfos.style.width = "100%";
+            wordInfos.style.height = "50%";
+            wordInfos.id = "wordInfos";
+            /*var selectedWord = document.createElement("h1");
+            selectedWord.id = "selectedWord";
+            wordInfos.appendChild(selectedWord);
+
+            var meaning = document.createElement("div");
+            meaning.setAttribute("style", "z-index: 2");
+            var meaningLabel = document.createElement("label");
+            meaningLabel.for = "meaning";
+            meaningLabel.innerText = "Meaning : ";
+            meaningLabel.style.fontSize = "1.5em";
+            var meaningInput = document.createElement("input");
+            meaningInput.type = "text";
+            meaningInput.id = "meaning";
+            meaning.appendChild(meaningLabel);
+            meaning.appendChild(meaningInput);
+            wordInfos.appendChild(meaning);
+
+            var pronunciation = document.createElement("div");
+            pronunciation.setAttribute("style", "z-index: 4");
+            var pronunciationLabel = document.createElement("label");
+            pronunciationLabel.for = "pronunciation";
+            pronunciationLabel.innerText = "Pronunciation : ";
+            pronunciationLabel.style.fontSize = "1.5em";
+            var pronunciationInput = document.createElement("input");
+            pronunciationInput.type = "text";
+            pronunciationInput.id = "pronunciation";
+            pronunciation.appendChild(pronunciationLabel);
+            pronunciation.appendChild(pronunciationInput);
+            wordInfos.appendChild(pronunciation);*/
+
 
             luvPannelFrame.appendChild(menuBar);
             menuBar.appendChild(cross);
             luvPannelFrame.appendChild(slider);
+            luvPannelFrame.appendChild(wordInfos);
             luvPannelFrame.appendChild(wiktionary);
             document.body.appendChild(luvPannelFrame);
         
             makeSlider(slider);
-
-        
+            
 
 })();
+
+function openLuvPannel(text, wordInfo, domWord){
+        
+        //open iframe
+        var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
+        if(video != null){
+            video.pause();
+        }
+        if(document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen){
+            document.getElementById("luvFrame").contentWindow.document.exitFullscreen();
+        }
+        wiktionary = document.getElementById("wiktionary");
+        wiktionary.setAttribute("src","https://www.wiktionary.org/wiki/" + text);
+        var luvPannelFrame = document.getElementById("luvPannelFrame");
+        if(luvPannelFrame.getAttribute("isOpened") === "false"){
+            luvPannelFrame.setAttribute("isOpened","true");
+            var defaultViewWidth = 30;
+            luvPannelFrame.style.width = defaultViewWidth + "vw";
+            document.getElementById("luvFrame").style.width = 100-defaultViewWidth + "vw";
+        }
+
+        //load data
+        var wordInfosDoc = document.getElementById("wordInfos").contentWindow.document;
+        wordInfosDoc.getElementById("selectedWord").innerText = text;
+        if(wordInfo.seen != undefined){
+            wordInfosDoc.getElementById("seen").innerText ="Seen " + wordInfo.seen + " times.";
+        }else{
+            wordInfo.seen = 1;
+            wordInfosDoc.getElementById("seen").innerText ="Seen 1 times.";
+        }
+        if(wordInfo.translation == undefined){
+            wordInfo.translation = "";
+        }
+        if(wordInfo.pronunciation == undefined){
+            wordInfo.pronunciation = "";
+        }
+        if(wordInfo.knowledge == undefined){
+            wordInfo.knowledge = 0;
+        }
+        wordInfosDoc.getElementById("translation").value = wordInfo.translation;
+        wordInfosDoc.getElementById("pronunciation").value = wordInfo.pronunciation;
+        wordInfosDoc.getElementById("status-" + wordInfo.knowledge).checked = "true";
+       
+        //save data script
+        wordInfosDoc.getElementById("wordForm").addEventListener("submit", (e) => {
+            e.preventDefault();
+
+            wordInfo.translation = wordInfosDoc.getElementById("translation").value;
+            wordInfo.pronunciation = wordInfosDoc.getElementById("pronunciation").value;
+
+            for(var i = 0; i<6; i++){
+                if( wordInfosDoc.getElementById("status-" + i).checked){
+                    wordInfo.knowledge = wordInfosDoc.getElementById("status-" + i).value;
+                }
+            }
+
+            updateStyle(domWord,wordInfo);
+            saveLuvWordInfo(wordInfo);
+        });
+
+
+}
 
 function makeSlider(elmnt) {
     var pos1 = 0, pos2 = 0;
@@ -193,25 +288,7 @@ function closeLuvPannel(){
         document.getElementById("luvPannelFrame").style.width = "0vw";
         document.getElementById("luvFrame").style.width = "100vw";
 }
-function openLuvPannel(word){
-        
-        var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
-        if(video != null){
-            video.pause();
-        }
-        if(document.fullScreen || document.mozFullScreen || document.webkitIsFullScreen){
-            document.getElementById("luvFrame").contentWindow.document.exitFullscreen();
-        }
-        wiktionary = document.getElementById("wiktionary");
-        wiktionary.setAttribute("src","https://www.wiktionary.org/wiki/" + word);
-        var luvPannelFrame = document.getElementById("luvPannelFrame");
-        if(luvPannelFrame.getAttribute("isOpened") === "false"){
-            luvPannelFrame.setAttribute("isOpened","true");
-            var defaultViewWidth = 30;
-            luvPannelFrame.style.width = defaultViewWidth + "vw";
-            document.getElementById("luvFrame").style.width = 100-defaultViewWidth + "vw";
-        }
-}
+
 
 /*(function(){
       setInterval(printCap, 1000);
@@ -234,15 +311,16 @@ function alignSubtitles(captionWindow){
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
-                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: .25em; padding-right: 0; "+
-                  "border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child {padding-left: .25em; padding-right: 0; "+
+                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }else if(textAlign === "left"){
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: .25em; " + 
-                  "border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
+                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
+                  //padding-top: .15em; padding-bottom: .15em; color: black; background: cyan
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }
         }
@@ -307,31 +385,92 @@ function handleCaptionSegment(segment){
        }).observe(segment,{ childList: true, subtree: true, characterData : true});
     
 }
+function saveLuvWordInfo(data){
+    if(data.word == undefined || data.word == null){
+        console.error("saveLuvWordInfo() was called on data without any word property");
+        return;
+    }
+    browser.runtime.sendMessage({request: "setLuvWordInfo", wordInfo : data});
+}
+function getLuvWordInfo(word){
 
-function makeLuvWord(w, text){
+   return browser.runtime.sendMessage({request: "getLuvWordInfo", word : word})
+            .then((e) => { return e;}, (e) => {
+                console.log("response error ",e);
+                return null;
+            });//.then((e) => {return e;});
+}
+
+async function makeLuvWord(w, text){
+
+
         
 	    w.style.display = "inline-block";
-	    //w.style.backgroundColor = 'green';
+	    w.style.backgroundColor = 'cyan';
+        w.style.color = 'black';//*/
 	    w.innerText = text;
 	    w.id = 'luvWord';
-        w.style.border='solid';
+        w.style.border = 'solid';
         w.style.borderWidth = '0px 0.15em';
         w.style.borderColor = 'transparent';
+        w.style.borderRadius= '5px';
+
+        
+        var wordInfo = await getLuvWordInfo(text);
+
+
         w.addEventListener("mousedown", function (event) {
-                    console.log(w.innerText);
-            openLuvPannel(w.innerText);
+            openLuvPannel(text, wordInfo,w);
             event.stopPropagation(); 
+
         }, true);
         
         w.addEventListener("mouseover", function (event) {
             w.style.borderWidth = '0.12em 0.15em';
             w.style.borderColor = 'yellow'; 
+            
+            
         }, true);
          w.addEventListener("mouseout", function (event) {
             w.style.borderWidth = '0px 0.15em';
             w.style.borderColor = 'transparent'; ; 
         }, true);
+
+        
+        if(wordInfo){
+            updateStyle(w,wordInfo);
+            incrSeen(w,wordInfo);
+            saveLuvWordInfo(wordInfo);
+
+        }else{//new word 
+            saveLuvWordInfo({word: text, seen: 1, translation: "", pronunciation: "", knowledge: 0});
+        }
+        
 }
+
+function updateStyle(w,wordInfo){
+    knowledgeColors = ['red','orange','yellow', "purple", "green" ];
+
+    if(wordInfo.knowledge >0){
+        w.style.backgroundColor = knowledgeColors[wordInfo.knowledge - 1];
+
+    }else if(wordInfo.seen){
+        w.style.backgroundColor = "rgba(0,255," + (255 - wordInfo.seen*7) + ")";
+        
+    }else{
+        w.style.backgroundColor = 'cyan';
+    }
+
+}
+
+function incrSeen(w,wordInfo){
+    if(wordInfo.seen){
+            wordInfo.seen++;
+    }else{
+        wordInfo.seen = 1;
+    }
+}
+
 function makeCaptionsNotDragable(){
      elem= document.getElementById('luvFrame').contentWindow.document.querySelector("div.caption-window");
     if(elem!=null){
@@ -345,6 +484,11 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
+-update style of all word occurences
+-stop listening to events on each separate word and use only one event listener
+-solve the duplicate seen pb (try to rollup all the words ) (more generaly make the seen variable indep from the make word func that is called for each new caption made)
+-handle diffent background from browser theme
+-make stored data exporatble and importable ,data loss  warning when storage limit is reach and when extension is uninstalled
 -store defaultViewWidth
 -keepTrackOfAll
 -open luv pannel next to a fullscreen video
@@ -361,6 +505,6 @@ function makeCaptionsNotDragable(){
 
 cd dev/Luv
 git add .
-git commit -m "made click on a luv word pause, exitfullscreen and search the word in a wiktionary iframe"
+git commit -m "implemented indexDB and wordInfos iframe"
 
 */

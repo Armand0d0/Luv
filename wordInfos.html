@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Luv Word Infos</title>
+  <style>
+    body {
+      width: 100%;
+      height: 100%;
+      padding-left : 2em;
+    }
+    .entry{
+      padding : 0.3em;
+    }
+    .buttonContainer{
+      position : absolute;
+      right: 1em;
+    }
+
+  </style>
+</head>
+<body>
+  <h1 id = "selectedWord"></h1>
+  <div id="wordFormContainer">
+    <form id="wordForm" action="">
+      <div id="term">
+        <div class = "entry" id="languageSelector">
+          <select id="language_id" ><option selected="" value="1">Arabic</option></select>
+        </div>
+          
+        <div class = "entry">
+          <input id = "pronunciation" placeholder="Pronunciation" type="text" value="">
+        </div>
+  
+        <div class = "entry" id="translationContainer">
+          <div><textarea id="translation" name="translation" placeholder="Translation"></textarea></div>
+        </div>
+  
+        <div class = "entry" id="statusContainer">
+
+              <input checked="" id="status-0" name="status" type="radio" value="0">
+               <label for="status-0">Ukn</label>
+
+              <input id="status-1" name="status" type="radio" value="1"> 
+              <label for="status-1">1</label>
+
+              <input id="status-2" name="status" type="radio" value="2"> 
+              <label for="status-2">2</label>
+
+              <input id="status-3" name="status" type="radio" value="3"> 
+              <label for="status-3">3</label>
+
+              <input id="status-4" name="status" type="radio" value="4"> 
+              <label for="status-4">4</label>
+
+              <input id="status-5" name="status" type="radio" value="5"> 
+              <label for="status-5">5</label>
+
+              <!-- <input id="status-6" name="status" type="radio" value="98"> 
+              <label for="status-6">Ign</label> -->
+
+        </div>
+
+        <div class = "entry" id = "seen">
+            Seen 0 times.
+        </div>
+
+        <div class = "buttonContainer" id="wordButtonContainer">
+            
+            <button id="delete" type="button">Delete</button>
+            
+            <button id="btnsubmit" type="submit" title="Shortcut: Control+Enter">Save</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</body>
+</html>

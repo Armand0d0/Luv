@@ -1,5 +1,5 @@
 console.log("popup script loaded");
-inject();
+//inject();
 //document.getElementById("refresh").addEventListener("click", inject);
 
     browser.runtime.sendMessage("embed");

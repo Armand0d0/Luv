@@ -43,8 +43,8 @@ function keepTrackOf(doc, selector, action){
 function onLuvFrameLoad(luvFrame){
 
       keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementById("caption-window-1") , alignSubtitles);
-      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
-      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
+      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
+      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
       
       luvFrame.contentWindow.document.body.onmousedown = function(e){
             //console.log(e.target);
@@ -59,6 +59,23 @@ function onLuvFrameLoad(luvFrame){
 
 }
 
+async function onSubmit(e){
+    e.preventDefault();
+    var wordInfosDoc = document.getElementById("wordInfos").contentWindow.document;
+    var word = wordInfosDoc.getElementById("selectedWord").innerText;
+    var wordInfo = await getLuvWordInfo(word);
+    wordInfo.translation = wordInfosDoc.getElementById("translation").value;
+    wordInfo.pronunciation = wordInfosDoc.getElementById("pronunciation").value;
+
+    for(var i = 0; i<6; i++){
+        if( wordInfosDoc.getElementById("status" + i).checked){
+            wordInfo.knowledge = wordInfosDoc.getElementById("status" + i).value;
+        }
+    }
+
+    updateStyleAll(wordInfo);
+    saveLuvWordInfo(wordInfo);
+}
 
 (function (){        
         for (const c of document.body.children){
@@ -67,12 +84,12 @@ function onLuvFrameLoad(luvFrame){
         var youtube = true;
         if(youtube){
             keepTrackOf(document, (doc) => doc.getElementsByTagName("ytd-app")[0],  function(n){
-                //n.style.display = "none";
-                n.remove();
+                n.style.display = "none";
+                //n.remove();
             });
             keepTrackOf(document, (doc) => doc.getElementById("watch-page-skeleton"),  function(n){
-                //n.style.display = "none";
-                n.remove();
+                n.style.display = "none";
+                //n.remove();
             });
         }
         cleanUp(document.getElementById("luvFrame"));
@@ -138,36 +155,9 @@ function onLuvFrameLoad(luvFrame){
             wordInfos.style.width = "100%";
             wordInfos.style.height = "50%";
             wordInfos.id = "wordInfos";
-            /*var selectedWord = document.createElement("h1");
-            selectedWord.id = "selectedWord";
-            wordInfos.appendChild(selectedWord);
-
-            var meaning = document.createElement("div");
-            meaning.setAttribute("style", "z-index: 2");
-            var meaningLabel = document.createElement("label");
-            meaningLabel.for = "meaning";
-            meaningLabel.innerText = "Meaning : ";
-            meaningLabel.style.fontSize = "1.5em";
-            var meaningInput = document.createElement("input");
-            meaningInput.type = "text";
-            meaningInput.id = "meaning";
-            meaning.appendChild(meaningLabel);
-            meaning.appendChild(meaningInput);
-            wordInfos.appendChild(meaning);
-
-            var pronunciation = document.createElement("div");
-            pronunciation.setAttribute("style", "z-index: 4");
-            var pronunciationLabel = document.createElement("label");
-            pronunciationLabel.for = "pronunciation";
-            pronunciationLabel.innerText = "Pronunciation : ";
-            pronunciationLabel.style.fontSize = "1.5em";
-            var pronunciationInput = document.createElement("input");
-            pronunciationInput.type = "text";
-            pronunciationInput.id = "pronunciation";
-            pronunciation.appendChild(pronunciationLabel);
-            pronunciation.appendChild(pronunciationInput);
-            wordInfos.appendChild(pronunciation);*/
-
+            wordInfos.onload = function (){
+                wordInfos.contentWindow.document.getElementById("wordForm").addEventListener("submit",onSubmit); 
+            };
 
             luvPannelFrame.appendChild(menuBar);
             menuBar.appendChild(cross);
@@ -181,7 +171,7 @@ function onLuvFrameLoad(luvFrame){
 
 })();
 
-function openLuvPannel(text, wordInfo, domWord){
+function openLuvPannel(text, wordInfo){
         
         //open iframe
         var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
@@ -221,24 +211,16 @@ function openLuvPannel(text, wordInfo, domWord){
         }
         wordInfosDoc.getElementById("translation").value = wordInfo.translation;
         wordInfosDoc.getElementById("pronunciation").value = wordInfo.pronunciation;
-        wordInfosDoc.getElementById("status-" + wordInfo.knowledge).checked = "true";
-       
-        //save data script
-        wordInfosDoc.getElementById("wordForm").addEventListener("submit", (e) => {
-            e.preventDefault();
-
-            wordInfo.translation = wordInfosDoc.getElementById("translation").value;
-            wordInfo.pronunciation = wordInfosDoc.getElementById("pronunciation").value;
-
-            for(var i = 0; i<6; i++){
-                if( wordInfosDoc.getElementById("status-" + i).checked){
-                    wordInfo.knowledge = wordInfosDoc.getElementById("status-" + i).value;
-                }
-            }
-
-            updateStyle(domWord,wordInfo);
-            saveLuvWordInfo(wordInfo);
-        });
+        if(wordInfo.knowledge >0){
+            wordInfosDoc.getElementById("status" + wordInfo.knowledge).checked = "true";
+        }
+        var seenColor = getSeenColor(wordInfo.seen);
+        document.getElementById("wordInfos").contentWindow.document
+        .getElementById("status0style").innerText = 
+        "input[type=\"radio\"].status0 + label{ "+
+            "background-color: " + seenColor + ";" +
+            "border: 2px solid " + seenColor + ";" +
+        "}";
 
 
 }
@@ -293,7 +275,7 @@ function closeLuvPannel(){
 /*(function(){
       setInterval(printCap, 1000);
       function printCap(){
-        console.log(document.getElementById('luvFrame').contentWindow.document.querySelector("span.ytp-caption-segment:not([id='luvWord'], [luvTracking = 'true'])"));
+        console.log(document.getElementById('luvFrame').contentWindow.document.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])"));
       }
 })();//*/
 function cleanUp(old){
@@ -311,14 +293,14 @@ function alignSubtitles(captionWindow){
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
-                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child {padding-left: .25em; padding-right: 0; "+
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child {padding-left: 0; padding-right: 0; "+//.25em
                   "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }else if(textAlign === "left"){
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
-                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: .25em; " + 
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: 0; " + 
                   "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
                   //padding-top: .15em; padding-bottom: .15em; color: black; background: cyan
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
@@ -359,7 +341,7 @@ function splitSegment(segment,text,modifying){
 
 function cleanupSplitWords(segment){
     segment.parentNode.childNodes.forEach(function (w){
-        if((w.id === 'luvWord')){
+        if((w.name === 'luvWord')){
             w.remove();
             
         }
@@ -368,7 +350,7 @@ function cleanupSplitWords(segment){
 }
 
 function handleCaptionSegment(segment){
-        if(segment.id === 'luvWord'){
+        if(segment.name === 'luvWord'){
 	             return;
 	    }
 
@@ -403,13 +385,11 @@ function getLuvWordInfo(word){
 
 async function makeLuvWord(w, text){
 
-
-        
 	    w.style.display = "inline-block";
 	    w.style.backgroundColor = 'cyan';
         w.style.color = 'black';//*/
 	    w.innerText = text;
-	    w.id = 'luvWord';
+	    w.setAttribute("name", 'luvWord');
         w.style.border = 'solid';
         w.style.borderWidth = '0px 0.15em';
         w.style.borderColor = 'transparent';
@@ -420,7 +400,12 @@ async function makeLuvWord(w, text){
 
 
         w.addEventListener("mousedown", function (event) {
-            openLuvPannel(text, wordInfo,w);
+            openLuvPannel(text, wordInfo);
+            event.stopPropagation(); 
+
+        }, true);
+        w.addEventListener("touchstart", function (event) {
+            openLuvPannel(text, wordInfo);
             event.stopPropagation(); 
 
         }, true);
@@ -439,7 +424,7 @@ async function makeLuvWord(w, text){
         
         if(wordInfo){
             updateStyle(w,wordInfo);
-            incrSeen(w,wordInfo);
+            incrSeen(wordInfo);
             saveLuvWordInfo(wordInfo);
 
         }else{//new word 
@@ -447,23 +432,38 @@ async function makeLuvWord(w, text){
         }
         
 }
+function updateStyleAll(wordInfo){
+    var luvWords = document.getElementById("luvFrame").contentWindow.document.getElementsByName("luvWord");
 
-function updateStyle(w,wordInfo){
-    knowledgeColors = ['red','orange','yellow', "purple", "green" ];
+    luvWords.forEach((domWord) => {
+        if(domWord.innerText === wordInfo.word){
+            updateStyle(domWord,wordInfo);
+        }
+    } );
+}
+function max(x,y){
+    return x >= y ? x : y;
+}
+function getSeenColor(seen){
+    return  "rgba(0,255," + max(255 - seen,160) + ")";
+}
 
+function updateStyle(domWord,wordInfo){
+    knowledgeColors = ['rgb(255,99,63)','rgb(255, 133, 20)','rgb(255, 174, 0)', "rgb(255, 227, 0)", "rgb(118,230,6)" ];
+    var seenColor = getSeenColor(wordInfo.seen);
     if(wordInfo.knowledge >0){
-        w.style.backgroundColor = knowledgeColors[wordInfo.knowledge - 1];
+        domWord.style.backgroundColor = knowledgeColors[wordInfo.knowledge - 1];
 
     }else if(wordInfo.seen){
-        w.style.backgroundColor = "rgba(0,255," + (255 - wordInfo.seen*7) + ")";
+        domWord.style.backgroundColor = seenColor;
         
     }else{
-        w.style.backgroundColor = 'cyan';
+        domWord.style.backgroundColor = 'cyan';
     }
 
 }
 
-function incrSeen(w,wordInfo){
+function incrSeen(wordInfo){
     if(wordInfo.seen){
             wordInfo.seen++;
     }else{
@@ -475,8 +475,8 @@ function makeCaptionsNotDragable(){
      elem= document.getElementById('luvFrame').contentWindow.document.querySelector("div.caption-window");
     if(elem!=null){
         elem.setAttribute("draggable", "false");
-        elem.style.userSelect="none";
-        elem.style.cursor="default";
+        elem.style.userSelect = "none";
+        elem.style.cursor = "default";
     }
 }
 
@@ -484,9 +484,15 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
--update style of all word occurences
 -stop listening to events on each separate word and use only one event listener
 -solve the duplicate seen pb (try to rollup all the words ) (more generaly make the seen variable indep from the make word func that is called for each new caption made)
+-refaire l'apparence des mot selectioné
+
+
+-shortcut ctrl + enter
+-ytd-app issue: remove it (can block page from loading) or put display style to none (possible duplicate audible)
+-make several words selectable 
+-split on custom prefix
 -handle diffent background from browser theme
 -make stored data exporatble and importable ,data loss  warning when storage limit is reach and when extension is uninstalled
 -store defaultViewWidth
@@ -494,7 +500,6 @@ function makeCaptionsNotDragable(){
 -open luv pannel next to a fullscreen video
 -make navigation possible in iframe 
 -when click on yt link check if it the same viedo with a slightly difrent url (split &)
--refaire l'apparence des mot selectioné
 -netflix 
 -get display style of modified segment (in splitSegment)
 -make evry text on the page clickable

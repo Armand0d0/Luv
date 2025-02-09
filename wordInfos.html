@@ -10,12 +10,57 @@
     }
     .entry{
       padding : 0.3em;
+      display: flex;
     }
     .buttonContainer{
       position : absolute;
       right: 1em;
     }
-
+    input[type="radio"].knowledge {
+      display: none;
+    }
+    input[type="radio"].status1 + label{
+      background-color: rgb(255,99,63);
+      border: 2px solid rgb(255,99,63);
+    }
+    input[type="radio"].status2 + label{
+      background-color: rgb(255, 133, 20);
+      border: 2px solid rgb(255, 133, 20);
+    }
+    input[type="radio"].status3 + label{
+      background-color: rgb(255, 174, 0);
+      border: 2px solid rgb(255, 174, 0);
+    }
+    input[type="radio"].status4 + label{
+      background-color: rgb(255, 227, 0);
+      border: 2px solid rgb(255, 227, 0);
+    }
+    input[type="radio"].status5 + label{
+      background-color: rgb(118,230,6);
+      border: 2px solid rgb(118,230,6);
+    }
+    input[type="radio"].knowledge + label{
+      border-radius: 5px;
+      padding: .12em .55em;
+      
+      color: black;
+    }
+    input[type="radio"].knowledge:checked + label{
+      border: 2px solid black;
+    }
+    input[type="radio"].knowledge:hover + label{
+      border: 2px solid rgb(0, 0, 0);
+    }
+    .knowledgeLabel{
+      position: relative;
+      top: 5.5px;
+    }
+  </style>
+  <style id="status0style">
+    input[type="radio"].status0 + label{
+      background-color: cyan;
+      border: 2px solid cyan;
+    }
   </style>
 </head>
 <body>
@@ -36,24 +81,26 @@
         </div>
   
         <div class = "entry" id="statusContainer">
+          <div class = "knowledgeLabel">
+            Knowledge :&nbsp;&nbsp;
+          </div>
+              <input class = "knowledge status0" id="status0" name="status" type="radio" value="0">
+               <label for="status0">0</label>
 
-              <input checked="" id="status-0" name="status" type="radio" value="0">
-               <label for="status-0">Ukn</label>
+              <input class = "knowledge status1" checked="" id="status1" name="status" type="radio" value="1"> 
+              <label for="status1">1</label>
 
-              <input id="status-1" name="status" type="radio" value="1"> 
-              <label for="status-1">1</label>
+              <input class = "knowledge status2" id="status2" name="status" type="radio" value="2"> 
+              <label for="status2">2</label>
 
-              <input id="status-2" name="status" type="radio" value="2"> 
-              <label for="status-2">2</label>
+              <input class = "knowledge status3" id="status3" name="status" type="radio" value="3"> 
+              <label for="status3">3</label>
 
-              <input id="status-3" name="status" type="radio" value="3"> 
-              <label for="status-3">3</label>
+              <input class = "knowledge status4" id="status4" name="status" type="radio" value="4"> 
+              <label for="status4">4</label>
 
-              <input id="status-4" name="status" type="radio" value="4"> 
-              <label for="status-4">4</label>
-
-              <input id="status-5" name="status" type="radio" value="5"> 
-              <label for="status-5">5</label>
+              <input class = "knowledge status5" id="status5" name="status" type="radio" value="5"> 
+              <label for="status5">5</label>
 
               <!-- <input id="status-6" name="status" type="radio" value="98"> 
               <label for="status-6">Ign</label> -->

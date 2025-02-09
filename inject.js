@@ -76,7 +76,8 @@ async function onSubmit(e){
     updateStyleAll(wordInfo);
     saveLuvWordInfo(wordInfo);
 }
-
+var ytPlayerResponse;
+var ytCaptionsNodes;
 (function (){        
         for (const c of document.body.children){
           c.remove()
@@ -102,7 +103,11 @@ async function onSubmit(e){
             luvFrame.style.width = "100vw";
             luvFrame.style.height = "100vh";
             luvFrame.setAttribute("sandbox","allow-top-navigation allow-same-origin allow-scripts");
+            /*luvFrame.onload = function(){
+                                
+            };*/
             document.body.appendChild(luvFrame);
+            
         
         
         cleanUp(document.getElementById("luvPannelFrame"));
@@ -167,11 +172,51 @@ async function onSubmit(e){
             document.body.appendChild(luvPannelFrame);
         
             makeSlider(slider);
+
+            
+            ytPlayerResponse = getYtPlayerResponse();
+            ytCaptionsNodes = getytCaptionsNodes();//language ?
             
 
 })();
+function getCurrentCaption(){
+    if(!ytCaptionsNodes){
+        return null;
+    }
+    var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
+    if(!video){
+        return null;
+    }
+    //video.currentTime... ytCaptionsNodes[i].attributes.start
+}
 
-function openLuvPannel(text, wordInfo){
+async function getytCaptionsNodes(){
+    if(!ytPlayerResponse){
+        return null;
+    }
+    let subsUrl = ytPlayerResponse.captions.playerCaptionsTracklistRenderer.captionTracks[0].baseUrl;
+    let subs = await (await fetch(subsUrl)).text();
+    let xml = new DOMParser().parseFromString(subs,"text/xml");
+    textNodes = [...xml.getElementsByTagName('text')];
+    textNodes.forEach(x => {
+        x.textContent = x.textContent.replaceAll('&#39;',"'");
+    });
+    return textNodes;
+}
+
+function getYtPlayerResponse(){
+    var scriptContent =`
+        document.body.setAttribute("data-playerResponse", JSON.stringify( document.getElementsByTagName("ytd-app")[0].data.playerResponse ));
+    `;
+    var script_tag = document.createElement('script');
+    script_tag.appendChild(document.createTextNode(scriptContent));
+    
+    (document.body || document.head || document.documentElement).appendChild(script_tag);
+    const playerResponse_json = document.body.getAttribute('data-playerResponse');
+    return JSON.parse(playerResponse_json);
+}
+
+function openLuvPannel(text, wordInfo){ 
         
         //open iframe
         var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
@@ -214,6 +259,7 @@ function openLuvPannel(text, wordInfo){
         if(wordInfo.knowledge >0){
             wordInfosDoc.getElementById("status" + wordInfo.knowledge).checked = "true";
         }
+        
         var seenColor = getSeenColor(wordInfo.seen);
         document.getElementById("wordInfos").contentWindow.document
         .getElementById("status0style").innerText = 
@@ -424,13 +470,17 @@ async function makeLuvWord(w, text){
         
         if(wordInfo){
             updateStyle(w,wordInfo);
-            incrSeen(wordInfo);
+            if(w.parentNode.nextSibling == null){//if word on bottom caption
+                incrSeen(wordInfo);
+            }
             saveLuvWordInfo(wordInfo);
 
         }else{//new word 
             saveLuvWordInfo({word: text, seen: 1, translation: "", pronunciation: "", knowledge: 0});
         }
         
+        
+
 }
 function updateStyleAll(wordInfo){
     var luvWords = document.getElementById("luvFrame").contentWindow.document.getElementsByName("luvWord");
@@ -485,8 +535,8 @@ function makeCaptionsNotDragable(){
 /*  
         TODOLIST :
 -stop listening to events on each separate word and use only one event listener
--solve the duplicate seen pb (try to rollup all the words ) (more generaly make the seen variable indep from the make word func that is called for each new caption made)
--refaire l'apparence des mot selectioné
+-solve the duplicate seen pb (more generaly make the seen variable indep from the make word func that is called for each new caption made)
+-remake selected word style
 
 
 -shortcut ctrl + enter

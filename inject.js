@@ -39,23 +39,29 @@ function keepTrackOf(doc, selector, action){
         observer.observe(doc.body, config);
 
 }
-
+var ytPlayerResponse;
+var ytCaptionsNodes;
 function onLuvFrameLoad(luvFrame){
 
-      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementById("caption-window-1") , alignSubtitles);
-      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
-      keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
+        
+
+
+        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementById("caption-window-1") , alignSubtitles);
+        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
+        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
       
-      luvFrame.contentWindow.document.body.onmousedown = function(e){
-            //console.log(e.target);
-            var url = e.target.href;
-            if(url == null){
-                url = e.target.baseURI;
-            }
-            if(url != window.location.href){
-                //console.log("new url : " + url);
-            }
-      };
+        luvFrame.contentWindow.document.body.onmousedown = function(e){
+                //console.log(e.target);
+                var url = e.target.href;
+                if(url == null){
+                    url = e.target.baseURI;
+                }
+                if(url != window.location.href){
+                    //console.log("new url : " + url);
+                }
+        };
+        
+ 
 
 }
 
@@ -76,15 +82,18 @@ async function onSubmit(e){
     updateStyleAll(wordInfo);
     saveLuvWordInfo(wordInfo);
 }
-var ytPlayerResponse;
-var ytCaptionsNodes;
-(function (){        
+//-------------------------------------------------------------------------------------------------------------------------------------------------
+(async function (){
+   
+
         for (const c of document.body.children){
-          c.remove()
+          //c.remove();
+          c.style.display = "none";
         }
         var youtube = true;
         if(youtube){
             keepTrackOf(document, (doc) => doc.getElementsByTagName("ytd-app")[0],  function(n){
+
                 n.style.display = "none";
                 //n.remove();
             });
@@ -175,10 +184,42 @@ var ytCaptionsNodes;
 
             
             ytPlayerResponse = getYtPlayerResponse();
-            ytCaptionsNodes = getytCaptionsNodes();//language ?
-            
+            ytCaptionsNodes =  await getYtCaptionsNodes();
 
 })();
+//--------------------------------------------------------------------------------------------------------
+var currentCaption = null;
+async function onCaptionChange(newCaption){
+    if(currentCaption){
+        words = currentCaption.textContent.split(" ");
+        console.log(words);
+        for(const w of words) {
+            console.log("w : ",w);
+            var wordInfo = await getLuvWordInfo(w);
+            console.log("wordInfo : ", wordInfo);
+            if(wordInfo){
+                wordInfo.seen++;
+                saveLuvWordInfo(wordInfo);
+            }else{//new word 
+                saveLuvWordInfo({word: w, seen: 1, translation: "", pronunciation: "", knowledge: 0});
+            } 
+        }
+        //saveCaption(currentCaption);
+    }
+    
+    currentCaption = newCaption;
+}
+//--------------------------------------------------------------------------------------------------------
+function checkCurrentCaption(){
+    var newCaption = getCurrentCaption();
+    if(!newCaption){
+        console.log("failed getCurrentCaption !!");
+        return;
+    }
+    if(currentCaption == null || newCaption.attributes.start.value != currentCaption.attributes.start.value){
+        onCaptionChange(newCaption);
+    }
+}
 function getCurrentCaption(){
     if(!ytCaptionsNodes){
         return null;
@@ -187,10 +228,20 @@ function getCurrentCaption(){
     if(!video){
         return null;
     }
-    //video.currentTime... ytCaptionsNodes[i].attributes.start
+
+    var res = null;
+    ytCaptionsNodes.forEach((cap) => {
+        var start = parseFloat(cap.attributes.start.value);
+        var dur = parseFloat(cap.attributes.dur.value);
+        if(video.currentTime >= start && video.currentTime < start + dur){
+            res = cap;
+        }
+        
+    });
+    return res;
 }
 
-async function getytCaptionsNodes(){
+async function getYtCaptionsNodes(){
     if(!ytPlayerResponse){
         return null;
     }
@@ -201,13 +252,13 @@ async function getytCaptionsNodes(){
     textNodes.forEach(x => {
         x.textContent = x.textContent.replaceAll('&#39;',"'");
     });
+    console.log("get yt captions",textNodes[0].textContent);
     return textNodes;
 }
 
 function getYtPlayerResponse(){
-    var scriptContent =`
-        document.body.setAttribute("data-playerResponse", JSON.stringify( document.getElementsByTagName("ytd-app")[0].data.playerResponse ));
-    `;
+    var scriptContent =`document.body.setAttribute("data-playerResponse", JSON.stringify(  document.getElementsByTagName("ytd-app")[0].data.playerResponse ));`;
+    //var luvFrameDoc = document.getElementById("luvFrame").contentWindow.document;
     var script_tag = document.createElement('script');
     script_tag.appendChild(document.createTextNode(scriptContent));
     
@@ -399,10 +450,10 @@ function handleCaptionSegment(segment){
         if(segment.name === 'luvWord'){
 	             return;
 	    }
-
-       makeCaptionsNotDragable();
-       splitSegment(segment, segment.innerText, false);
-       new MutationObserver( (mutationList) => {
+        checkCurrentCaption();
+        makeCaptionsNotDragable();
+        splitSegment(segment, segment.innerText, false);
+        new MutationObserver( (mutationList) => {
             for (const mutation of mutationList) {
 
                 if(mutation.addedNodes[0].nodeType == Node.TEXT_NODE){
@@ -410,15 +461,15 @@ function handleCaptionSegment(segment){
                     splitSegment(segment,w, true);
                 }
             }
-       }).observe(segment,{ childList: true, subtree: true, characterData : true});
+        }).observe(segment,{ childList: true, subtree: true, characterData : true});
     
 }
 function saveLuvWordInfo(data){
     if(data.word == undefined || data.word == null){
         console.error("saveLuvWordInfo() was called on data without any word property");
-        return;
+        return null;
     }
-    browser.runtime.sendMessage({request: "setLuvWordInfo", wordInfo : data});
+    return browser.runtime.sendMessage({request: "setLuvWordInfo", wordInfo : data});
 }
 function getLuvWordInfo(word){
 
@@ -444,6 +495,13 @@ async function makeLuvWord(w, text){
         
         var wordInfo = await getLuvWordInfo(text);
 
+        if(wordInfo){
+            updateStyle(w,wordInfo);
+            saveLuvWordInfo(wordInfo);
+
+        }else{//new word 
+            saveLuvWordInfo({word: text, seen: 1, translation: "", pronunciation: "", knowledge: 0});
+        }
 
         w.addEventListener("mousedown", function (event) {
             openLuvPannel(text, wordInfo);
@@ -468,18 +526,7 @@ async function makeLuvWord(w, text){
         }, true);
 
         
-        if(wordInfo){
-            updateStyle(w,wordInfo);
-            if(w.parentNode.nextSibling == null){//if word on bottom caption
-                incrSeen(wordInfo);
-            }
-            saveLuvWordInfo(wordInfo);
-
-        }else{//new word 
-            saveLuvWordInfo({word: text, seen: 1, translation: "", pronunciation: "", knowledge: 0});
-        }
-        
-        
+       
 
 }
 function updateStyleAll(wordInfo){
@@ -513,13 +560,6 @@ function updateStyle(domWord,wordInfo){
 
 }
 
-function incrSeen(wordInfo){
-    if(wordInfo.seen){
-            wordInfo.seen++;
-    }else{
-        wordInfo.seen = 1;
-    }
-}
 
 function makeCaptionsNotDragable(){
      elem= document.getElementById('luvFrame').contentWindow.document.querySelector("div.caption-window");
@@ -537,8 +577,9 @@ function makeCaptionsNotDragable(){
 -stop listening to events on each separate word and use only one event listener
 -solve the duplicate seen pb (more generaly make the seen variable indep from the make word func that is called for each new caption made)
 -remake selected word style
+-get current caption in the right language
 
-
+-fix slider onrelase/onout issue
 -shortcut ctrl + enter
 -ytd-app issue: remove it (can block page from loading) or put display style to none (possible duplicate audible)
 -make several words selectable 
@@ -556,6 +597,7 @@ function makeCaptionsNotDragable(){
 -handle punctuation : d' . - ... 
 -handle other alphabets
 -get the yt translation
+
 
 
 cd dev/Luv

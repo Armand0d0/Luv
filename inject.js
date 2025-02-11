@@ -41,10 +41,16 @@ function keepTrackOf(doc, selector, action){
 }
 var ytPlayerResponse;
 var ytCaptionsNodes;
-function onLuvFrameLoad(luvFrame){
+async function onLuvFrameLoad(luvFrame){
 
-        
-
+       /* ytPlayerResponse = await getYtPlayerResponse();
+        ytCaptionsNodes =  await getYtCaptionsNodes();
+       
+        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementsByTagName("ytd-app")[0] , async (e) => {
+            ytPlayerResponse = getYtPlayerResponse();
+            ytCaptionsNodes =  await getYtCaptionsNodes();
+            console.log("succeed", ytCaptionsNodes);
+        }); */
 
         keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementById("caption-window-1") , alignSubtitles);
         keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
@@ -105,19 +111,19 @@ async function onSubmit(e){
    
 
         for (const c of document.body.children){
-          //c.remove();
-          c.style.display = "none";
+          c.remove();
+          //c.style.display = "none";
         }
         var youtube = true;
         if(youtube){
             keepTrackOf(document, (doc) => doc.getElementsByTagName("ytd-app")[0],  function(n){
 
-                n.style.display = "none";
-                //n.remove();
+                //n.style.display = "none";
+                n.remove();
             });
             keepTrackOf(document, (doc) => doc.getElementById("watch-page-skeleton"),  function(n){
-                n.style.display = "none";
-                //n.remove();
+                //n.style.display = "none";
+                n.remove();
             });
         }
         cleanUp(document.getElementById("luvFrame"));
@@ -130,9 +136,6 @@ async function onSubmit(e){
             luvFrame.style.width = "100vw";
             luvFrame.style.height = "100vh";
             luvFrame.setAttribute("sandbox","allow-top-navigation allow-same-origin allow-scripts");
-            /*luvFrame.onload = function(){
-                                
-            };*/
             document.body.appendChild(luvFrame);
             
         
@@ -199,11 +202,6 @@ async function onSubmit(e){
             document.body.appendChild(luvPannelFrame);
         
             makeSlider(slider);
-
-            
-            ytPlayerResponse = getYtPlayerResponse();
-            ytCaptionsNodes =  await getYtCaptionsNodes();
-
             
 
 })();
@@ -228,12 +226,17 @@ async function onCaptionChange(newCaption){
     currentCaption = newCaption;
 }
 //--------------------------------------------------------------------------------------------------------
-function checkCurrentCaption(){
+async function checkCurrentCaption(){
+    if(!ytPlayerResponse){
+        ytPlayerResponse = getYtPlayerResponse();
+        ytCaptionsNodes =  await getYtCaptionsNodes();
+    }
     var newCaption = getCurrentCaption();
     if(!newCaption){
         console.log("failed getCurrentCaption !!");
         return;
     }
+    console.log(newCaption.textContent);
     if(currentCaption == null || newCaption.attributes.start.value != currentCaption.attributes.start.value){
         onCaptionChange(newCaption);
     }
@@ -248,14 +251,14 @@ function getCurrentCaption(){
     }
 
     var res = null;
-    ytCaptionsNodes.forEach((cap) => {
+    for(const  cap of ytCaptionsNodes){
         var start = parseFloat(cap.attributes.start.value);
         var dur = parseFloat(cap.attributes.dur.value);
         if(video.currentTime >= start && video.currentTime < start + dur){
             res = cap;
         }
         
-    });
+    }
     return res;
 }
 
@@ -274,10 +277,19 @@ async function getYtCaptionsNodes(){
     return textNodes;
 }
 
-function getYtPlayerResponse(){
-    var scriptContent =`document.body.setAttribute("data-playerResponse", JSON.stringify(  document.getElementsByTagName("ytd-app")[0].data.playerResponse ));`;
+function getYtPlayerResponse(){//document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("ytd-app")[0]
+    var scriptContent = 
+  //  "console.log(\"aaaaaaaaaaaaa\"); console.log(ytApp.__dataReady);" +
+    "(function() {" + 
+        "var ytApp = document.getElementById(\"luvFrame\").contentWindow.document.getElementsByTagName(\"ytd-app\")[0]; " +
+        "if(!ytApp.data){return;}" + 
+        "document.body.setAttribute(\"data-playerResponse\", JSON.stringify(  " + 
+        "ytApp.data.playerResponse ));" + 
+    "})();";
     //var luvFrameDoc = document.getElementById("luvFrame").contentWindow.document;
+    cleanUp(document.getElementById("luvGetYtPayerResponseScript"));
     var script_tag = document.createElement('script');
+    script_tag.id = "luvGetYtPayerResponseScript";
     script_tag.appendChild(document.createTextNode(scriptContent));
     
     (document.body || document.head || document.documentElement).appendChild(script_tag);
@@ -402,7 +414,7 @@ function cleanUp(old){
 }
 
 function alignSubtitles(captionWindow){
-        captionWindow.style.height = parseFloat(captionWindow.style.height) + 4 +"px";
+        captionWindow.style.height = parseFloat(captionWindow.style.height) + 8 +"px";
         var textAlign = captionWindow.style.textAlign;
         cleanUp(document.getElementById('luvFrame').contentWindow.document.getElementById("luvTextAlign"));
     
@@ -412,17 +424,16 @@ function alignSubtitles(captionWindow){
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child {background-color: cyan; padding-left: 0; padding-right: 0; "+//.25em
-                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 1px; color: black; }";
+                  "border-radius: 0.2em; border-style: solid; border-color : transparent; border-width: 2px; color: black; }";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
                   //padding-top: .15em; padding-bottom: .15em; color: black; background: cyan;    border-width: 0px 0.15em
-
 
             /*}else if(textAlign === "left"){
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: 0; " + 
-                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 1px; color: black; background: cyan}";
+                  "border-radius: 0.2em; border-style: solid; border-color : transparent; border-width: 2px; color: black; background: cyan}";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }
         }*/
@@ -511,9 +522,9 @@ async function makeLuvWord(w, text){
 	    w.innerText = text;
 	    w.setAttribute("name", 'luvWord');
         w.style.border = 'solid';
-        w.style.borderWidth = '1px';//'0.12em 0.15em';
+        w.style.borderWidth = '2px';//'0.12em 0.15em';
         w.style.borderColor = 'transparent';
-        w.style.borderRadius= '5px';
+        w.style.borderRadius= '0.2em';
 
         
         var wordInfo = await getLuvWordInfo(text);
@@ -571,12 +582,14 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
+-href vs baseurl when navigating via an iframe
 -keepTrackOfAll
 -handle punctuation : d' . - ... 
 -get current caption in the right language
+-solve Alignment visible offset when caption rollup
 
-
--ytd-app issue: remove it (can block page from loading) or put display style to none (possible duplicate audible)
+-make popup pannel version
+-ytd-app issue: remove it (can block page from loading) or put display style to none (possible duplicate audio)
 -make navigation possible in iframe 
 -when click on yt link check if it the same viedo with a slightly difrent url (split &)
 -Error: Promised response from onMessage listener went out of scope

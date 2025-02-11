@@ -43,14 +43,6 @@ var ytPlayerResponse;
 var ytCaptionsNodes;
 async function onLuvFrameLoad(luvFrame){
 
-       /* ytPlayerResponse = await getYtPlayerResponse();
-        ytCaptionsNodes =  await getYtCaptionsNodes();
-       
-        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementsByTagName("ytd-app")[0] , async (e) => {
-            ytPlayerResponse = getYtPlayerResponse();
-            ytCaptionsNodes =  await getYtCaptionsNodes();
-            console.log("succeed", ytCaptionsNodes);
-        }); */
 
         keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementById("caption-window-1") , alignSubtitles);
         keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
@@ -226,10 +218,17 @@ async function onCaptionChange(newCaption){
     currentCaption = newCaption;
 }
 //--------------------------------------------------------------------------------------------------------
+var videoUrl = (location.href).split("&")[0];
 async function checkCurrentCaption(){
-    if(!ytPlayerResponse){
-        ytPlayerResponse = getYtPlayerResponse();
+    var currUrl = (document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("ytd-app")[0].baseURI).split("&")[0];
+    if(!ytPlayerResponse || videoUrl !== currUrl ){
+        ytPlayerResponse = await getYtPlayerResponse();
         ytCaptionsNodes =  await getYtCaptionsNodes();
+        console.log("url changed");
+        console.log(videoUrl);
+        console.log(currUrl);
+
+        videoUrl = currUrl;
     }
     var newCaption = getCurrentCaption();
     if(!newCaption){
@@ -424,7 +423,7 @@ function alignSubtitles(captionWindow){
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child {background-color: cyan; padding-left: 0; padding-right: 0; "+//.25em
-                  "border-radius: 0.2em; border-style: solid; border-color : transparent; border-width: 2px; color: black; }";
+                  "border-radius: 0.3em; border-style: solid; border-color : transparent; border-width: 2px; color: black; }";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
                   //padding-top: .15em; padding-bottom: .15em; color: black; background: cyan;    border-width: 0px 0.15em
 
@@ -433,7 +432,7 @@ function alignSubtitles(captionWindow){
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: 0; " + 
-                  "border-radius: 0.2em; border-style: solid; border-color : transparent; border-width: 2px; color: black; background: cyan}";
+                  "border-radius: 0.3em; border-style: solid; border-color : transparent; border-width: 2px; color: black; background: cyan}";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }
         }*/
@@ -524,7 +523,7 @@ async function makeLuvWord(w, text){
         w.style.border = 'solid';
         w.style.borderWidth = '2px';//'0.12em 0.15em';
         w.style.borderColor = 'transparent';
-        w.style.borderRadius= '0.2em';
+        w.style.borderRadius= '0.3em';
 
         
         var wordInfo = await getLuvWordInfo(text);
@@ -582,7 +581,7 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
--href vs baseurl when navigating via an iframe
+-duplicate onchangecaption when lagging
 -keepTrackOfAll
 -handle punctuation : d' . - ... 
 -get current caption in the right language

@@ -402,27 +402,30 @@ function cleanUp(old){
 }
 
 function alignSubtitles(captionWindow){
+        captionWindow.style.height = parseFloat(captionWindow.style.height) + 4 +"px";
         var textAlign = captionWindow.style.textAlign;
         cleanUp(document.getElementById('luvFrame').contentWindow.document.getElementById("luvTextAlign"));
     
-        if(captionWindow && textAlign != undefined){
-            if(textAlign === "right"){
+        /*if(captionWindow && textAlign != undefined){
+            if(textAlign === "right"){*/
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
-                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child {padding-left: 0; padding-right: 0; "+//.25em
-                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
+                  el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child {background-color: cyan; padding-left: 0; padding-right: 0; "+//.25em
+                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 1px; color: black; }";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
-            }else if(textAlign === "left"){
+                  //padding-top: .15em; padding-bottom: .15em; color: black; background: cyan;    border-width: 0px 0.15em
+
+
+            /*}else if(textAlign === "left"){
                   let el = document.getElementById('luvFrame').contentWindow.document.createElement('style');
                   el.type = 'text/css';
                   el.id = 'luvTextAlign';
                   el.innerText = ".html5-video-player .caption-visual-line .ytp-caption-segment:last-child { padding-left: 0; padding-right: 0; " + 
-                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 0px 0.15em}";
-                  //padding-top: .15em; padding-bottom: .15em; color: black; background: cyan
+                  "border-radius: 5px; border-style: solid; border-color : transparent; border-width: 1px; color: black; background: cyan}";
                   document.getElementById('luvFrame').contentWindow.document.head.appendChild(el);
             }
-        }
+        }*/
 }
 
 function splitSegment(segment,text,modifying){
@@ -508,7 +511,7 @@ async function makeLuvWord(w, text){
 	    w.innerText = text;
 	    w.setAttribute("name", 'luvWord');
         w.style.border = 'solid';
-        w.style.borderWidth = '0.12em 0.15em';
+        w.style.borderWidth = '1px';//'0.12em 0.15em';
         w.style.borderColor = 'transparent';
         w.style.borderRadius= '5px';
 
@@ -576,6 +579,7 @@ function makeCaptionsNotDragable(){
 -ytd-app issue: remove it (can block page from loading) or put display style to none (possible duplicate audible)
 -make navigation possible in iframe 
 -when click on yt link check if it the same viedo with a slightly difrent url (split &)
+-Error: Promised response from onMessage listener went out of scope
 
 -get the yt translation
 -make several words selectable 

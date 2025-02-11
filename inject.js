@@ -71,15 +71,12 @@ function onLuvFrameLoad(luvFrame){
         luvFrame.contentWindow.document.body.addEventListener("mouseover", function(e){
             var w = e.target;
             if(w.getAttribute("name") === "luvWord"){
-                
-                w.style.borderWidth = '0.12em 0.15em';
                 w.style.borderColor = 'yellow'; 
             }
         }, true);
         luvFrame.contentWindow.document.body.addEventListener("mouseout", function(e){
             var w = e.target;
             if(w.getAttribute("name") === "luvWord"){
-                w.style.borderWidth = '0px 0.15em';
                 w.style.borderColor = 'transparent'; ; 
             }
         },true);
@@ -511,7 +508,7 @@ async function makeLuvWord(w, text){
 	    w.innerText = text;
 	    w.setAttribute("name", 'luvWord');
         w.style.border = 'solid';
-        w.style.borderWidth = '0px 0.15em';
+        w.style.borderWidth = '0.12em 0.15em';
         w.style.borderColor = 'transparent';
         w.style.borderRadius= '5px';
 
@@ -571,10 +568,8 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
--
 -keepTrackOfAll
 -handle punctuation : d' . - ... 
--remake selected word style
 -get current caption in the right language
 
 

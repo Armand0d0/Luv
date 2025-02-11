@@ -51,18 +51,39 @@ function onLuvFrameLoad(luvFrame){
         keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
       
         luvFrame.contentWindow.document.body.onmousedown = function(e){
-                //console.log(e.target);
-                var url = e.target.href;
+                //console.log(e.target, e.target.getAttribute("name"));
+                var w = e.target;
+                if(w.getAttribute("name") === "luvWord"){
+                        openLuvPannel(w.innerText);//, wordInfo);
+                        e.stopPropagation(); 
+                }
+                /*var url = e.target.href;
                 if(url == null){
                     url = e.target.baseURI;
                 }
                 if(url != window.location.href){
                     //console.log("new url : " + url);
-                }
+                }*/
         };
         
- 
-
+        luvFrame.contentWindow.document.body.ontouchend = luvFrame.contentWindow.document.body.onmousedown;
+        
+        luvFrame.contentWindow.document.body.addEventListener("mouseover", function(e){
+            var w = e.target;
+            if(w.getAttribute("name") === "luvWord"){
+                
+                w.style.borderWidth = '0.12em 0.15em';
+                w.style.borderColor = 'yellow'; 
+            }
+        }, true);
+        luvFrame.contentWindow.document.body.addEventListener("mouseout", function(e){
+            var w = e.target;
+            if(w.getAttribute("name") === "luvWord"){
+                w.style.borderWidth = '0px 0.15em';
+                w.style.borderColor = 'transparent'; ; 
+            }
+        },true);
+       
 }
 
 async function onSubmit(e){
@@ -186,25 +207,25 @@ async function onSubmit(e){
             ytPlayerResponse = getYtPlayerResponse();
             ytCaptionsNodes =  await getYtCaptionsNodes();
 
+            
+
 })();
 //--------------------------------------------------------------------------------------------------------
 var currentCaption = null;
 async function onCaptionChange(newCaption){
     if(currentCaption){
         words = currentCaption.textContent.split(" ");
-        console.log(words);
         for(const w of words) {
-            console.log("w : ",w);
             var wordInfo = await getLuvWordInfo(w);
-            console.log("wordInfo : ", wordInfo);
             if(wordInfo){
                 wordInfo.seen++;
+                //saveOccurence(w,videoId,captionId,timecode)
                 saveLuvWordInfo(wordInfo);
             }else{//new word 
                 saveLuvWordInfo({word: w, seen: 1, translation: "", pronunciation: "", knowledge: 0});
             } 
         }
-        //saveCaption(currentCaption);
+        //saveCaption(currentCaption,videoId,timecode);
     }
     
     currentCaption = newCaption;
@@ -252,7 +273,7 @@ async function getYtCaptionsNodes(){
     textNodes.forEach(x => {
         x.textContent = x.textContent.replaceAll('&#39;',"'");
     });
-    console.log("get yt captions",textNodes[0].textContent);
+    console.log("get yt captions : ",textNodes[0].textContent);
     return textNodes;
 }
 
@@ -267,8 +288,10 @@ function getYtPlayerResponse(){
     return JSON.parse(playerResponse_json);
 }
 
-function openLuvPannel(text, wordInfo){ 
+async function openLuvPannel(text){ 
         
+        var wordInfo = await getLuvWordInfo(text);
+
         //open iframe
         var video = document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("video")[0];
         if(video != null){
@@ -498,35 +521,9 @@ async function makeLuvWord(w, text){
         if(wordInfo){
             updateStyle(w,wordInfo);
             saveLuvWordInfo(wordInfo);
-
         }else{//new word 
             saveLuvWordInfo({word: text, seen: 1, translation: "", pronunciation: "", knowledge: 0});
         }
-
-        w.addEventListener("mousedown", function (event) {
-            openLuvPannel(text, wordInfo);
-            event.stopPropagation(); 
-
-        }, true);
-        w.addEventListener("touchstart", function (event) {
-            openLuvPannel(text, wordInfo);
-            event.stopPropagation(); 
-
-        }, true);
-        
-        w.addEventListener("mouseover", function (event) {
-            w.style.borderWidth = '0.12em 0.15em';
-            w.style.borderColor = 'yellow'; 
-            
-            
-        }, true);
-         w.addEventListener("mouseout", function (event) {
-            w.style.borderWidth = '0px 0.15em';
-            w.style.borderColor = 'transparent'; ; 
-        }, true);
-
-        
-       
 
 }
 function updateStyleAll(wordInfo){
@@ -574,34 +571,32 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
--stop listening to events on each separate word and use only one event listener
--solve the duplicate seen pb (more generaly make the seen variable indep from the make word func that is called for each new caption made)
+-
+-keepTrackOfAll
+-handle punctuation : d' . - ... 
 -remake selected word style
 -get current caption in the right language
 
--fix slider onrelase/onout issue
--shortcut ctrl + enter
+
 -ytd-app issue: remove it (can block page from loading) or put display style to none (possible duplicate audible)
+-make navigation possible in iframe 
+-when click on yt link check if it the same viedo with a slightly difrent url (split &)
+
+-get the yt translation
 -make several words selectable 
--split on custom prefix
+-fix slider onrelase/mouseout issue
+-shortcut ctrl + enter
 -handle diffent background from browser theme
 -make stored data exporatble and importable ,data loss  warning when storage limit is reach and when extension is uninstalled
 -store defaultViewWidth
--keepTrackOfAll
 -open luv pannel next to a fullscreen video
--make navigation possible in iframe 
--when click on yt link check if it the same viedo with a slightly difrent url (split &)
--netflix 
--get display style of modified segment (in splitSegment)
+
+
 -make evry text on the page clickable
--handle punctuation : d' . - ... 
+-get display style of modified segment (in splitSegment)
+-netflix 
+
 -handle other alphabets
--get the yt translation
-
-
-
-cd dev/Luv
-git add .
-git commit -m "implemented indexDB and wordInfos iframe"
+-split on custom prefix
 
 */

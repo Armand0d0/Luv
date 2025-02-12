@@ -45,9 +45,8 @@ async function onLuvFrameLoad(luvFrame){
 
 
         keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.getElementById("caption-window-1") , alignSubtitles);
-        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
-        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") , handleCaptionSegment);
-      
+        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") ,handleCaptionSegment);
+        keepTrackOf(luvFrame.contentWindow.document, (doc) => doc.querySelector("span.ytp-caption-segment:not([name='luvWord'], [luvTracking = 'true'])") ,handleCaptionSegment);
         luvFrame.contentWindow.document.body.onmousedown = function(e){
                 //console.log(e.target, e.target.getAttribute("name"));
                 var w = e.target;
@@ -202,8 +201,11 @@ var currentCaption = null;
 async function onCaptionChange(newCaption){
     if(currentCaption){
         words = currentCaption.textContent.split(" ");
+        //console.log();
         for(const w of words) {
             var wordInfo = await getLuvWordInfo(w);
+            //console.log(wordInfo);
+
             if(wordInfo){
                 wordInfo.seen++;
                 //saveOccurence(w,videoId,captionId,timecode)
@@ -219,15 +221,12 @@ async function onCaptionChange(newCaption){
 }
 //--------------------------------------------------------------------------------------------------------
 var videoUrl = (location.href).split("&")[0];
+
 async function checkCurrentCaption(){
     var currUrl = (document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("ytd-app")[0].baseURI).split("&")[0];
     if(!ytPlayerResponse || videoUrl !== currUrl ){
-        ytPlayerResponse = await getYtPlayerResponse();
+        ytPlayerResponse = getYtPlayerResponse();
         ytCaptionsNodes =  await getYtCaptionsNodes();
-        console.log("url changed");
-        console.log(videoUrl);
-        console.log(currUrl);
-
         videoUrl = currUrl;
     }
     var newCaption = getCurrentCaption();
@@ -235,9 +234,9 @@ async function checkCurrentCaption(){
         console.log("failed getCurrentCaption !!");
         return;
     }
-    console.log(newCaption.textContent);
     if(currentCaption == null || newCaption.attributes.start.value != currentCaption.attributes.start.value){
         onCaptionChange(newCaption);
+        //console.log(newCaption.textContent,newCaption.attributes.start.value, currentCaption.attributes.start.value );
     }
 }
 function getCurrentCaption(){
@@ -276,16 +275,14 @@ async function getYtCaptionsNodes(){
     return textNodes;
 }
 
-function getYtPlayerResponse(){//document.getElementById("luvFrame").contentWindow.document.getElementsByTagName("ytd-app")[0]
+function getYtPlayerResponse(){
     var scriptContent = 
-  //  "console.log(\"aaaaaaaaaaaaa\"); console.log(ytApp.__dataReady);" +
     "(function() {" + 
         "var ytApp = document.getElementById(\"luvFrame\").contentWindow.document.getElementsByTagName(\"ytd-app\")[0]; " +
         "if(!ytApp.data){return;}" + 
         "document.body.setAttribute(\"data-playerResponse\", JSON.stringify(  " + 
         "ytApp.data.playerResponse ));" + 
     "})();";
-    //var luvFrameDoc = document.getElementById("luvFrame").contentWindow.document;
     cleanUp(document.getElementById("luvGetYtPayerResponseScript"));
     var script_tag = document.createElement('script');
     script_tag.id = "luvGetYtPayerResponseScript";
@@ -347,7 +344,6 @@ async function openLuvPannel(text){
         .getElementById("status0style").innerText = 
         "input[type=\"radio\"].status0 + label{ "+
             "background-color: " + seenColor + ";" +
-            "border: 2px solid " + seenColor + ";" +
         "}";
 
 
@@ -483,7 +479,9 @@ function handleCaptionSegment(segment){
         if(segment.name === 'luvWord'){
 	             return;
 	    }
-        checkCurrentCaption();
+        if(segment.parentNode.nextSibling == null){
+            checkCurrentCaption();
+        }
         makeCaptionsNotDragable();
         splitSegment(segment, segment.innerText, false);
         new MutationObserver( (mutationList) => {
@@ -581,7 +579,6 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
--duplicate onchangecaption when lagging
 -keepTrackOfAll
 -handle punctuation : d' . - ... 
 -get current caption in the right language
@@ -594,7 +591,6 @@ function makeCaptionsNotDragable(){
 -Error: Promised response from onMessage listener went out of scope
 
 -get the yt translation
--make several words selectable 
 -fix slider onrelase/mouseout issue
 -shortcut ctrl + enter
 -handle diffent background from browser theme
@@ -608,6 +604,7 @@ function makeCaptionsNotDragable(){
 -netflix 
 
 -handle other alphabets
+-make several words selectable 
 -split on custom prefix
 
 */

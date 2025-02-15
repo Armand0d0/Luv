@@ -579,8 +579,16 @@ function makeCaptionsNotDragable(){
 	
 /*  
         TODOLIST :
--keepTrackOfAll
--handle punctuation : d' . - ... 
+
+-on each word clicked put back the selected knowledge to 1
+-better dictionaries
+-shortcut
+-go back 1 sec on replay ?
+-make word group selectable
+-mark current caption understood/known
+
+-keepTrackOfAll (some captions have more than 2 lines)
+-handle punctuation : d' . - ... and make current word content editable to save prefix, separate ...
 -get current caption in the right language
 -solve Alignment visible offset when caption rollup
 
@@ -606,5 +614,7 @@ function makeCaptionsNotDragable(){
 -handle other alphabets
 -make several words selectable 
 -split on custom prefix
+
+zip -r -FS ../Luv.zip * --exclude '*.git*'
 
 */

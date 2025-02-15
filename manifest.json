@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Luv",
   "version": "1.0",
-  "description": "A laguage learnig extension and that keeps track of the words you learn using video captions.",
+  "description": "A laguage learnig extension that keeps track of the words you learn using video captions.",
   "icons": {
     "1": "icon.png"
   },
@@ -29,9 +29,11 @@
 	"type": "module"
   },
   "browser_specific_settings": {
-  "gecko": {
-    "id": "9a41634eed1f4eb9e8631a0208082894eeb13ef9@luv"
-  }
-}
+    "gecko": {
+      "id": "9a41634eed1f4eb9e8631a0208082894eeb13ef9@luv"
+    }
+  },
+  "content_security_policy":  "script-src 'self' https://unpkg.com/dexie@3.2.2  https://unpkg.com/dexie-export-import@1.0.3"
+  
 
 }

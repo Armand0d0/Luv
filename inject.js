@@ -264,6 +264,8 @@ async function getYtCaptionsNodes(){
     if(!ytPlayerResponse){
         return null;
     }
+    currLanguages = sessionStorage.getItem("yt-player-caption-language-preferences").data;
+    console.log(currLanguages[currLanguages.length-1]);
     let subsUrl = ytPlayerResponse.captions.playerCaptionsTracklistRenderer.captionTracks[0].baseUrl;
     let subs = await (await fetch(subsUrl)).text();
     let xml = new DOMParser().parseFromString(subs,"text/xml");
@@ -335,6 +337,7 @@ async function openLuvPannel(text){
         }
         wordInfosDoc.getElementById("translation").value = wordInfo.translation;
         wordInfosDoc.getElementById("pronunciation").value = wordInfo.pronunciation;
+        wordInfosDoc.getElementById("status1").checked = "true";
         if(wordInfo.knowledge >0){
             wordInfosDoc.getElementById("status" + wordInfo.knowledge).checked = "true";
         }
